@@ -24,7 +24,11 @@
                  [io.pedestal/pedestal.jetty "0.5.10"]
                  [metosin/reitit-pedestal "0.5.18"]
                  [com.brunobonacci/mulog "0.9.0"]
-                 [org.clojure/tools.analyzer "1.1.0"]]
+                 [org.clojure/tools.analyzer "1.1.0"]
+                 ;; transient dependencies required by `lein-nsort`
+                 [org.clojure/tools.namespace "1.3.0"]
+                 [com.rpl/specter "1.1.3"]
+                 [rewrite-clj "1.1.45"]]
   :repl-options {:init-ns integrated-learning-system.server}
   :profiles {:uberjar {:aot :all}
              :dev     {:resource-paths ["dev/resources"]
@@ -33,4 +37,4 @@
   :plugins [[lein-nsort "0.1.15"]]
   :uberjar-name "integrated-learning-system.jar"
   :nsort {:source-paths ["src" "dev/src"]
-          :require      {:comp compare-namespaces}})
+          :require      {:sort-fn first, :comp compare-namespaces}})

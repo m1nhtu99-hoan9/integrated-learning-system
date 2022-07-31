@@ -1,31 +1,31 @@
 (ns integrated-learning-system.routing
   (:require
     [clojure.spec.alpha :as s]
-    [reitit.http :as http]
-    [reitit.ring :as ring]
-    [reitit.pedestal]
+    [integrated-learning-system.routing.students :refer [create-student-routes]]
+    [integrated-learning-system.services.app :as app-service]
+    [io.pedestal.http.route :as route]
+    [muuntaja.core :as muuntaja]
     [reitit.coercion.spec :refer [coercion] :rename {coercion coercion-instance}]
     [reitit.dev.pretty :as reitit-pretty]
-    [muuntaja.core :as muuntaja]
-    [io.pedestal.http.route :as route]
-    [reitit.swagger-ui :refer [create-swagger-ui-handler]]
+    [reitit.http :as http]
     [reitit.http.interceptors.exception :refer [exception-interceptor]]
-    [reitit.http.interceptors.muuntaja :refer [format-request-interceptor,
-                                               format-response-interceptor,
+    [reitit.http.interceptors.muuntaja :refer [format-request-interceptor
+                                               format-response-interceptor
                                                format-negotiate-interceptor]]
+    [reitit.pedestal]
+    [reitit.ring :as ring]
     [reitit.swagger :refer [create-swagger-handler swagger-feature]]
-    [integrated-learning-system.routing.students :refer [create-student-routes]]
-    [integrated-learning-system.services.app :as app-service]))
+    [reitit.swagger-ui :refer [create-swagger-ui-handler]]))
 
 (defonce router-opts
-  {:exception reitit-pretty/exception
-   :data      {:coercion     coercion-instance
-               :muuntaja     muuntaja/instance
-               :interceptors [swagger-feature
-                              exception-interceptor
-                              format-request-interceptor
-                              format-response-interceptor
-                              format-negotiate-interceptor]}})
+         {:exception reitit-pretty/exception
+          :data      {:coercion     coercion-instance
+                      :muuntaja     muuntaja/instance
+                      :interceptors [swagger-feature
+                                     exception-interceptor
+                                     format-request-interceptor
+                                     format-response-interceptor
+                                     format-negotiate-interceptor]}})
 
 (defn- create-swagger-docs [{:keys [name version]}]
   ["/swagger.json" {:get {:no-doc  true

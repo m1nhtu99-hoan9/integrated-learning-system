@@ -1,12 +1,11 @@
 (ns integrated-learning-system.services
   "Life-cycle definitions for stateful services"
-  (:require [integrant.core :as ig]
+  (:require [aero.core :as aero]
             [clojure.java.io :as io]
             [clojure.spec.alpha :as s]
             [com.brunobonacci.mulog :as mulog]
-            [aero.core :as aero])
-  (:import (java.net URL)
-           (java.io FileNotFoundException)))
+            [integrant.core :as ig])
+  (:import (java.net URL)))
 
 (s/def ::log-event #{::resource-config-file-not-found})
 

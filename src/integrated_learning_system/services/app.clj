@@ -1,11 +1,8 @@
 (ns integrated-learning-system.services.app
   (:require
-    [integrant.core :as ig]
-    [clojure.pprint :refer [pprint]]
     [clojure.spec.alpha :as s]
     [com.brunobonacci.mulog :as mulog]
-    [integrated-learning-system.spec :as shared-spec]
-    [integrated-learning-system.server :as server]))
+    [integrant.core :as ig]))
 
 (defmethod ig/init-key :server/app
   [_ {:keys [name version env], :as config}]

@@ -1,11 +1,11 @@
 (ns integrated-learning-system.services.http-server
   (:require
+    [clojure.spec.alpha :as s]
+    [com.brunobonacci.mulog :as mulog]
     [integrant.core :as ig]
     [io.pedestal.http :as pedestal-http]
-    [clojure.spec.alpha :as s]
     [reitit.pedestal]
-    [com.brunobonacci.mulog :as mulog]
-    [integrated-learning-system.routing :refer [create-routing-interceptor]]))
+    [integrated-learning-system.routing :refer [create-routing-interceptor]] ))
 
 (s/def ::log-event #{::init-failed ::init-successfully})
 
@@ -18,7 +18,7 @@
       (pedestal-http/create-server)))
 
 (defmethod ig/init-key :server/http
-  [_ {:keys [pedestal app] :as config-map}]
+  [_ {:keys [pedestal app]}]
   (try
     (if-some [server-service-map (-> (create-server pedestal app) (pedestal-http/start))]
       (do (mulog/log ::init-successfully :instance server-service-map)

@@ -2,16 +2,14 @@
   (:require
     [clojure.pprint :refer [pprint]]
     [clojure.spec.alpha :as s]
-    [integrant.repl :refer :all]
     [integrant.core :as ig]
+    [integrant.repl :refer :all]
     [integrant.repl.state :as state]
     [integrated-learning-system.server :as server]
-    [integrated-learning-system.services :refer [config->service-map config-fdir->map]]
-    [com.brunobonacci.mulog :as mulog]))
+    [integrated-learning-system.services :refer [config-fdir->map]]))
 
-(defonce ^:private config-fname "config-dev.edn")
+(defonce ^:private config-fname "config_dev.edn")
 
-(mulog/start-publisher! {:type :console})
 (set-prep! #(config-fdir->map config-fname))
 
 (defn start-dev []
@@ -42,7 +40,7 @@
   (pprint server-impl)
   (restart-dev)
   (start-dev)
-  (stop-dev))
+  (halt-dev))
 
 ;; ring experiments
 (comment (def app (-> state/system :server/app)))
