@@ -1,0 +1,1 @@
+web: java $JVM_OPTS -cp target/online-learning-system.jar clojure.main -m online-learning-system.server "resources/config.edn"

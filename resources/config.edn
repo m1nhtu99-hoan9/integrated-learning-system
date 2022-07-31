@@ -1,0 +1,9 @@
+{:server/http {:pedestal  {:io.pedestal.http/routes []      ; initiate no pedestal routes
+                           :io.pedestal.http/type   :jetty
+                           :io.pedestal.http/join?  false
+                           :io.pedestal.http/port   #env SERVER_PORT}
+               :app #ig/ref :server/app}
+ :db/pg       {:connection-string nil}
+ :server/app  {:name    "Integrated Learning System"
+               :version "0.1.0-HEAD"
+               :env     :prod}}
