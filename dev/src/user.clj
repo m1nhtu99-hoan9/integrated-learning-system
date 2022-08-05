@@ -1,64 +1,54 @@
 (ns user
   (:require
-    [clojure.pprint :refer [pprint]]
-    [clojure.spec.alpha :as s]
-    [integrant.core :as ig]
-    [integrant.repl :refer :all]
-    [integrant.repl.state :as state]
-    [integrated-learning-system.server :as server]
-    [integrated-learning-system.services :refer [config-fdir->map]]))
+    [com.brunobonacci.mulog :as mulog]
+    [com.brunobonacci.mulog.core :refer [publishers]]
+    [com.stuartsierra.component.repl :as c-repl]
+    [integrated-learning-system.components.database :refer [database-component]]
+    [integrated-learning-system.server :as server :refer [config-fname->map create-system]])
+  (:import (com.brunobonacci.mulog.publisher ConsolePublisher)))
 
 (defonce ^:private config-fname "config_dev.edn")
 
-(set-prep! #(config-fdir->map config-fname))
+(defn mk-system [_]
+  (when (not-any? #(instance? ConsolePublisher %) @publishers)
+    (mulog/start-publisher! {:type :console, :pretty? true}))
+  (-> config-fname config-fname->map create-system))
+
+(c-repl/set-init mk-system)
 
 (defn start-dev []
-  {:post [(s/valid? ::server/state %)]}
-
-  (try
-    (go)
-    (catch Exception _
-      :failed))
+  (c-repl/start)
   :started)
-
-(defn halt-dev []
-  {:post [(s/valid? ::server/state %)]}
-
-  (halt)
+(defn stop-dev []
+  (c-repl/stop)
   :stopped)
-
 (defn restart-dev []
-  {:post [(s/valid? ::server/state %)]}
-  (halt-dev)
-  (start-dev)
-
+  (c-repl/reset)
   :restarted)
 
 (comment
-  (def server-impl (:server/app state/system))
-  server-impl
-  (pprint server-impl)
+  ; (resultset-seq)
+
+  (keys c-repl/system)  ;; => '(:database :http-server)
+  (:http-server c-repl/system)
   (restart-dev)
   (start-dev)
-  (halt-dev))
+  (stop-dev)
 
-;; ring experiments
-(comment (def app (-> state/system :server/app)))
-(comment (set-prep! #(-> "resources/config.edn" slurp ig/read-string)))
+  (if-some [config (config-fname->map config-fname)]
+    (let [db-component (-> config
+                           (get-in [:db :postgres])
+                           (database-component)
+                           (start))
+          db-conn (:db-conn db-component)]
+      db-conn))
+
+  (server/-main config-fname))
+
 (comment
-  (go)                                                      ;; => :initiated
-  (halt)                                                    ;; => :halted
-  ;; REPL command added and bound to <ALT> + <SHIFT> + ,
-  (reset)                                                   ;; => :resumed
-
   ;; Without the muuntaja 'format-middleware', opening this URI through web browser would lead to
   ;; HTTP ERROR 500 java.lang.IllegalArgumentException:
   ;; No implementation of method: :write-body-to-stream of protocol: #'ring.core.protocols/StreamableResponseBody found
   ;; for class: clojure.lang.PersistentArrayMap
   (app {:request-method :get
-        :uri            "/swagger.json"})
-
-  ;; Misc stuffs
-  (ancestors (type '(1 2 3)))
-  (ancestors (type [1 2 3])))
-
+        :uri            "/swagger.json"}))

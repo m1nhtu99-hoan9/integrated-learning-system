@@ -17,23 +17,29 @@
             :url  "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.11.1"]
                  [aero "1.1.6"]
-                 [integrant "0.8.0"]
+                 [com.stuartsierra/component "1.1.0"]
                  [metosin/reitit "0.5.18"]
-                 [clj-http "3.12.3"]
                  [io.pedestal/pedestal.service "0.5.10"]
                  [io.pedestal/pedestal.jetty "0.5.10"]
                  [metosin/reitit-pedestal "0.5.18"]
                  [com.brunobonacci/mulog "0.9.0"]
-                 [org.clojure/tools.analyzer "1.1.0"]
+                 [migratus "1.4.0"]
+                 [org.postgresql/postgresql "42.3.4"]
+                 [camel-snake-kebab "0.4.3"]
                  ;; transient dependencies required by `lein-nsort`
                  [org.clojure/tools.namespace "1.3.0"]
                  [com.rpl/specter "1.1.3"]
-                 [rewrite-clj "1.1.45"]]
+                 [rewrite-clj "1.1.45"]
+                 ;; other transient dependencies
+                 [org.clojure/tools.analyzer "1.1.0"]
+                 [org.slf4j/slf4j-api "1.7.36"]]
   :repl-options {:init-ns integrated-learning-system.server}
   :profiles {:uberjar {:aot :all}
              :dev     {:resource-paths ["dev/resources"]
                        :source-paths   ["dev/src"]
-                       :dependencies   [[integrant/repl "0.3.1"]]}}
+                       :dependencies   [[com.stuartsierra/component.repl "1.0.0"]]}}
+  ;; turn on the global setting for using `spec` as validation
+  :injections [(require '[clojure.spec.alpha :as s]) (s/check-asserts true)]
   :plugins [[lein-nsort "0.1.15"]]
   :uberjar-name "integrated-learning-system.jar"
   :nsort {:source-paths ["src" "dev/src"]
