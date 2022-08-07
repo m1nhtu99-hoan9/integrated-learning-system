@@ -5,21 +5,26 @@
     [clojure.spec.alpha :as s]
     [com.brunobonacci.mulog :as mulog]
     [com.brunobonacci.mulog.core :refer [publishers]]
-    [com.stuartsierra.component :as component]
-    [integrated-learning-system.components.database :refer [database-component]]
-    [integrated-learning-system.components.http-server :refer [http-server-component]]
+    [integrant.core :as ig]
     [integrated-learning-system.migration :refer [init-db!]]
-    [integrated-learning-system.specs.config :as s-config])
+    integrated-learning-system.services.db
+    integrated-learning-system.services.server)
   (:import
+    (clojure.lang MapEntry)
     (com.brunobonacci.mulog.publisher ConsolePublisher)
     (java.io FileNotFoundException)))
 
 (s/def ::state #{:started :resumed :stopped :restarted :failed})
 (s/def ::log-event #{::resource-config-file-not-found ::config-resolved})
 
-(defn config-fname->map [config-fname]
+(defmethod aero/reader 'ig/ref [_ _ value]
+  ; Educate `aero` on how to read `#ig/ref` literal tag
+  (ig/ref value))
+
+(defn config-fname->map
   "Read from and then resolve config-fname to get config map"
-  (if-some [config (some-> config-fname (io/resource) (aero/read-config))]          ; find the `.edn` config under `resources` folder
+  [config-fname]
+  (if-some [config (some-> config-fname (io/resource) (aero/read-config))] ; find the `.edn` config under `resources` folder
     (do
       (mulog/log ::config-resolved :content config)
       config)
@@ -27,30 +32,25 @@
       (mulog/log ::resource-config-file-not-found :file-name config-fname)
       (throw (FileNotFoundException. config-fname)))))
 
-(defn create-system [config-map]
-  "Create Component system"
-  (component/system-map
-    ; :config config-map
-    :database (database-component (get-in config-map [:db :postgres]))
-    :http-server (component/using (http-server-component (config-map :server))
-                                  {:db-conn :database})))
+(defn start-console-log-publisher!
+  "Register a new mulog console log publisher only when there are none yet"
+  []
+  (when (not-any? #(->> ^MapEntry % (.getValue) (:publisher) (instance? ConsolePublisher))
+                  @publishers)
+    (mulog/start-publisher! {:type :console, :pretty? true})))
+
 
 (defn -main [config-fname]
-  ; register a new mulog console log publisher only when there are none yet
-  (when (not-any? #(instance? ConsolePublisher %) @publishers)
-    (mulog/start-publisher! {:type :console, :pretty? true}))
+  (start-console-log-publisher!)
 
   (if-some [config (config-fname->map config-fname)]
-    (do
-      ; validate config
-      (when (s/invalid? (s/conform ::s-config/config-map config))
-        (throw (ex-info "Invalid config"
-                        (s/explain-data ::s-config/config-map config))))
-      ; run init migration script (WIP)
-      (init-db! (config :db))
-      ; resolve & kick-start DI
-      (component/start (create-system config)))))
-
+    ; resolve & kick-start DI
+    (-> config
+        (ig/prep)
+        (ig/init [:server/app :server/http :db/postgres]))))
 
 (comment
-  (-main "config.edn"))
+  (-main "config.edn")
+
+  ; run init migration script (WIP)
+  (init-db! (config :db)))

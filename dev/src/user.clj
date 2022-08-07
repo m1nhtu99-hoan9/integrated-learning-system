@@ -1,39 +1,40 @@
 (ns user
   (:require
-    [com.brunobonacci.mulog :as mulog]
-    [com.brunobonacci.mulog.core :refer [publishers]]
-    [com.stuartsierra.component.repl :as c-repl]
-    [integrated-learning-system.components.database :refer [database-component]]
-    [integrated-learning-system.server :as server :refer [config-fname->map create-system]])
-  (:import (com.brunobonacci.mulog.publisher ConsolePublisher)))
+    [integrant.core :refer [load-namespaces]]
+    [integrant.repl :as ig-repl]
+    [integrant.repl.state :as ig-state]
+    [integrated-learning-system.server :as server :refer [config-fname->map start-console-log-publisher!]]))
 
 (defonce ^:private config-fname "config_dev.edn")
 
-(defn mk-system [_]
-  (when (not-any? #(instance? ConsolePublisher %) @publishers)
-    (mulog/start-publisher! {:type :console, :pretty? true}))
-  (-> config-fname config-fname->map create-system))
+(start-console-log-publisher!)
 
-(c-repl/set-init mk-system)
+(ig-repl/set-prep!
+  (constantly (-> config-fname config-fname->map)))
 
 (defn start-dev []
-  (c-repl/start)
+  (ig-repl/go)
   :started)
+
 (defn stop-dev []
-  (c-repl/stop)
+  (ig-repl/halt)
   :stopped)
+
 (defn restart-dev []
-  (c-repl/reset)
+  (stop-dev)
+  (start-dev)
   :restarted)
+
 
 (comment
   ; (resultset-seq)
 
-  (keys c-repl/system)  ;; => '(:database :http-server)
-  (:http-server c-repl/system)
+  (load-namespaces ig-state/config)
+  ig-state/system
+
   (restart-dev)
-  (start-dev)
   (stop-dev)
+  (start-dev)
 
   (if-some [config (config-fname->map config-fname)]
     (let [db-component (-> config
