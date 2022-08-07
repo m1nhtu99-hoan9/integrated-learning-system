@@ -9,4 +9,4 @@
   (s/and string? #(re-matches semver-regex %)))
 
 (s/def ::port (s/or :raw string?
-                    :parsed int?))
+                    :parsed pos-int?))

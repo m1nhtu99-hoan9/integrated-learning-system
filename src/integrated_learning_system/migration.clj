@@ -9,6 +9,8 @@
 
 (s/def ::log-event #{::db-conn-failed ::db-access-failed ::db-not-created})
 
+;; WIP
+
 (defn- enforce-db-existed! [^Connection db-conn ^String expected-dbname]
   {:pre (some? expected-dbname)}
   (try

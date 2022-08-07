@@ -9,4 +9,5 @@
 (s/def ::http-server/join? boolean?)
 (s/def ::http-server/port ::shared-spec/port)
 
-(s/def ::config-map (s/keys :req [::http-server/join? ::http-server/routes ::http-server/type ::http-server/port]))
+(s/def ::config-map
+  (s/keys :req [::http-server/join? ::http-server/routes ::http-server/type ::http-server/port]))

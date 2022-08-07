@@ -17,7 +17,7 @@
             :url  "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.11.1"]
                  [aero "1.1.6"]
-                 [com.stuartsierra/component "1.1.0"]
+                 [integrant "0.8.0"]
                  [metosin/reitit "0.5.18"]
                  [io.pedestal/pedestal.service "0.5.10"]
                  [io.pedestal/pedestal.jetty "0.5.10"]
@@ -37,7 +37,10 @@
   :profiles {:uberjar {:aot :all}
              :dev     {:resource-paths ["dev/resources"]
                        :source-paths   ["dev/src"]
-                       :dependencies   [[com.stuartsierra/component.repl "1.0.0"]]}}
+                       :dependencies   [[integrant/repl "0.3.1"]
+                                        ;; transient dependencies
+                                        [clojure-complete "0.2.5"]
+                                        [nrepl "0.8.3"]]}}
   ;; turn on the global setting for using `spec` as validation
   :injections [(require '[clojure.spec.alpha :as s]) (s/check-asserts true)]
   :plugins [[lein-nsort "0.1.15"]]
