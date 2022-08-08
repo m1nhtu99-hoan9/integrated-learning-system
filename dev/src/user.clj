@@ -1,6 +1,6 @@
 (ns user
   (:require
-    [integrant.core :refer [load-namespaces]]
+    [integrant.core :refer [load-namespaces] :as ig]
     [integrant.repl :as ig-repl]
     [integrant.repl.state :as ig-state]
     [integrated-learning-system.server :as server :refer [config-fname->map start-console-log-publisher!]]))
@@ -10,7 +10,7 @@
 (start-console-log-publisher!)
 
 (ig-repl/set-prep!
-  (constantly (-> config-fname config-fname->map)))
+  (constantly (-> config-fname config-fname->map ig/prep)))
 
 (defn start-dev []
   (ig-repl/go)
