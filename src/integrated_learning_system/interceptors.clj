@@ -2,24 +2,39 @@
   (:require
     [io.pedestal.interceptor :refer [interceptor]]
     [integrated-learning-system.routing :as routing]
-    [integrated-learning-system.services.db :refer [halt-db-conn init-db-conn]]))
+    [integrated-learning-system.db :refer [halt-db-conn init-db-conn]]))
 
-(defn db-conn-interceptor [postgres-cfgmap]
-  "Create interceptor for creating new database connection on enter and close the connection (if opened) on leave"
+(defn -fn-register-db-conn [ctx postgres-cfgmap]
+  (if-some [db-conn (init-db-conn postgres-cfgmap)]
+    ; non-null -> includes the initiated db-conn to the service collection
+    (update-in ctx [:request :services]
+               merge {:db-conn db-conn})
+    ; null -> persists the failure message
+    (update-in ctx [:request :failures]
+               merge {:database "Failed to establish connection with database."})))
+
+(defn -fn-unregister-db-conn [ctx]
+  (as-> ctx $
+        (update-in $ [:request :services]
+                   (fn [service-map]
+                     (when-some [conn (:db-conn service-map)]
+                       (halt-db-conn conn))
+                     ; nothing would happen when `:db-conn` key is not in the map
+                     (dissoc service-map :db-conn)))
+        (update-in $ [:request :failures]
+                   (fn [failure-map]
+                     (comment "cleanup written failure message(s) if any")
+                     (dissoc failure-map :database)))))
+
+(defn create-db-conn-interceptor [postgres-cfgmap]
+  "Create an interceptor for providing new database connection on enter and close the connection (if opened) on leave"
 
   (interceptor
     {:name  ::db-conn
-     :enter (fn [ctx]
-              (update-in ctx [:request :services]
-                         merge {:db-conn (init-db-conn postgres-cfgmap)}))
-     :leave (fn [ctx]
-              (get-in ctx [:request :services])
-              (update-in ctx [:request :services]
-                         #(let [db-conn (:db-conn %)]
-                            (halt-db-conn db-conn)
-                            (dissoc % :db-conn))))}))
+     :enter #(-fn-register-db-conn % postgres-cfgmap)
+     :leave -fn-unregister-db-conn}))
 
-(defn routing-interceptor [app-config]
+(defn create-routing-interceptor [app-config]
   "Create `pedestal` interceptor for `reitit`-based routing"
 
   (reitit.pedestal/routing-interceptor (routing/create-router app-config)

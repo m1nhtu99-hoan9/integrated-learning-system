@@ -1,43 +1,17 @@
 (ns integrated-learning-system.services.db
   (:require
     [clojure.spec.alpha :as s]
-    [com.brunobonacci.mulog :as mulog]
-    [next.jdbc :as jdbc]
-    [next.jdbc.specs :as s-jdbc]
     [integrant.core :as ig]
+    [integrated-learning-system.specs.config.migrations :as s-migrations]
     [integrated-learning-system.specs.config.postgres :as s-postgres]
-    [integrated-learning-system.specs.config.migrations :as s-migrations])
-  (:import (java.sql Connection)
-           (javax.sql DataSource)))
+    [hugsql.core :as hugsql]
+    [hugsql.adapter.next-jdbc :refer [hugsql-adapter-next-jdbc]]
+    [next.jdbc :as jdbc]
+    [next.jdbc.result-set :as rs])
+  (:import (javax.sql DataSource)))
 
 
 (s/def ::log-event #{::init-failed ::init-successfully ::closed ::close-failed})
-
-
-(defn init-db-conn [postgres-cfg]
-  (try
-    (when-let [db-conn (jdbc/get-connection postgres-cfg)]
-      (mulog/log ::init-successfully :instance db-conn)
-      ^Connection db-conn)
-    (catch Exception exn
-      (mulog/log ::init-failed :exception exn)
-      (throw exn))))
-
-(s/fdef init-db-conn
-  :args (s/cat :postgres-cfg (s/or :spec ::s-jdbc/db-spec-map
-                                   :datasource ::s-jdbc/datasource)))
-
-
-(defn halt-db-conn [^Connection db-conn]
-  (if (some? db-conn)
-    (try
-      (.close db-conn)
-      (mulog/log ::closed)
-
-      (catch Exception exn
-        (mulog/log ::close-failed :exception exn)
-        (throw exn)))))
-
 
 ;; db/postgres
 
@@ -47,6 +21,8 @@
 
 (defmethod ig/init-key :db/postgres
   ^DataSource [_ cfgmap]
+
+  (hugsql/set-adapter! (hugsql-adapter-next-jdbc {:builder-fn rs/as-unqualified-lower-maps}))
   (jdbc/get-datasource cfgmap))
 
 (defmethod ig/pre-init-spec :db/postgres

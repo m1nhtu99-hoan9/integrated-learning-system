@@ -19,13 +19,20 @@
                  [aero "1.1.6"]
                  [integrant "0.8.0"]
                  [metosin/reitit "0.5.18"]
+                 [metosin/spec-tools "0.10.5"]
                  [io.pedestal/pedestal.service "0.5.10"]
                  [io.pedestal/pedestal.jetty "0.5.10"]
                  [metosin/reitit-pedestal "0.5.18"]
-                 [com.brunobonacci/mulog "0.9.0"]
-                 [migratus "1.4.0"]
+
+                 [com.github.seancorfield/next.jdbc "1.2.796"]
+                 [com.layerware/hugsql-core "0.5.3"]
+                 [com.layerware/hugsql-adapter-next-jdbc "0.5.3"]
                  [org.postgresql/postgresql "42.3.4"]
+
+                 [clojure-interop/apache-commons-lang "1.0.0"]
+                 [com.brunobonacci/mulog "0.9.0"]
                  [camel-snake-kebab "0.4.3"]
+                 [crypto-password "0.3.0"]
                  ;; transient dependencies required by `lein-nsort`
                  [org.clojure/tools.namespace "1.3.0"]
                  [com.rpl/specter "1.1.3"]
@@ -42,7 +49,8 @@
                                         [clojure-complete "0.2.5"]
                                         [nrepl "0.8.3"]]}}
   ;; turn on the global setting for using `spec` as validation
-  :injections [(require '[clojure.spec.alpha :as s]) (s/check-asserts true)]
+  :injections [(require '[clojure.spec.alpha :as s])
+               (s/check-asserts true)]
   :plugins [[lein-nsort "0.1.15"]]
   :uberjar-name "integrated-learning-system.jar"
   :nsort {:source-paths ["src" "dev/src"]

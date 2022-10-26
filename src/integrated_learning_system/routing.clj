@@ -1,7 +1,9 @@
 (ns integrated-learning-system.routing
   (:require
     [camel-snake-kebab.core :as csk]
+    [integrated-learning-system.handlers.commons :refer [handle-ping-fn]]
     [integrated-learning-system.routing.students :refer [create-student-routes]]
+    [integrated-learning-system.specs.server :as s-server]
     [muuntaja.core :as muuntaja]
     [reitit.coercion.spec :refer [coercion] :rename {coercion coercion-instance}]
     [reitit.dev.pretty :as reitit-pretty]
@@ -30,8 +32,7 @@
                  :muuntaja     muuntaja-instance
                  :interceptors [swagger-feature
                                 (format-negotiate-interceptor muuntaja-instance)
-                                (format-response-interceptor muuntaja-instance)
-                                (exception-interceptor)
+                                (format-response-interceptor muuntaja-instance) (exception-interceptor)
                                 (format-request-interceptor muuntaja-instance)]}}))
 
 (defn- create-swagger-docs [{:keys [name version]}]
@@ -42,22 +43,19 @@
                                                :version     version}}
                           :handler (create-swagger-handler)}}])
 
-(defn- handle-ping [req]
-  {:status 200
-   :body   {:scheme           (:scheme req)
-            :message          "Running at v1"
-            :contain-db-conn? (some? (get-in req [:services :db-conn]))}})
-
 (defn create-router [app-config]
   (http/router
     [(create-swagger-docs app-config)
-     ["/ping" {:get {:handler handle-ping}}]
-     ["/v1"
-      [["/students" (create-student-routes)]]]]
+     ["/ping" {:get {:summary   "Health check"
+                     :responses {200 {:body {:message string?}}}
+                     :handler   (handle-ping-fn app-config)}}]
+     ["/api"
+      ["/v1"
+       [["/students" (create-student-routes)]]]]]
     router-opts))
 
 (defn create-default-handler []
-  "Create ring handle for handling when no matched routes found"
+  "Create fallback `ring` handler for when no matched routes found"
   (ring/routes
     (create-swagger-ui-handler {:path "/"})
     (ring/create-resource-handler)
