@@ -6,7 +6,7 @@
 
 (defn -fn-register-db-conn [ctx postgres-cfgmap]
   (if-some [db-conn (init-db-conn postgres-cfgmap)]
-    ; non-null -> includes the initiated db-conn to the service collection
+    ; non-null -> includes the initiated `db-conn` to the service collection
     (update-in ctx [:request :services]
                merge {:db-conn db-conn})
     ; null -> persists the failure message
@@ -23,11 +23,12 @@
                      (dissoc service-map :db-conn)))
         (update-in $ [:request :failures]
                    (fn [failure-map]
-                     (comment "cleanup written failure message(s) if any")
+                     (comment "cleanup failure message(s) if written.")
                      (dissoc failure-map :database)))))
 
 (defn create-db-conn-interceptor [postgres-cfgmap]
-  "Create an interceptor for providing new database connection on enter and close the connection (if opened) on leave"
+  "Create an interceptor for providing new database connection
+  on enter and close the connection (if opened) on leave"
 
   (interceptor
     {:name  ::db-conn

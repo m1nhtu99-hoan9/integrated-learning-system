@@ -29,9 +29,12 @@
                  [com.layerware/hugsql-adapter-next-jdbc "0.5.3"]
                  [org.postgresql/postgresql "42.3.4"]
 
-                 [clojure-interop/apache-commons-lang "1.0.0"]
-                 [com.brunobonacci/mulog "0.9.0"]
                  [camel-snake-kebab "0.4.3"]
+                 [org.apache.commons/commons-lang3 "3.11"]
+                 [clojure-interop/apache-commons-lang "1.0.0"]
+                 [clojure.java-time "1.1.0"]
+                 [metosin/ring-http-response "0.9.3"]
+                 [com.brunobonacci/mulog "0.9.0"]
                  [crypto-password "0.3.0"]
                  ;; transient dependencies required by `lein-nsort`
                  [org.clojure/tools.namespace "1.3.0"]

@@ -1,6 +1,6 @@
 (ns integrated-learning-system.specs.config.postgres
   (:require [clojure.spec.alpha :as s]
-            [integrated-learning-system.spec :as shared-spec]))
+            [integrated-learning-system.specs :as shared-spec]))
 
 (s/def ::host string?)
 (s/def ::port ::shared-spec/port)

@@ -6,8 +6,7 @@
     [integrated-learning-system.specs.config.postgres :as s-postgres]
     [hugsql.core :as hugsql]
     [hugsql.adapter.next-jdbc :refer [hugsql-adapter-next-jdbc]]
-    [next.jdbc :as jdbc]
-    [next.jdbc.result-set :as rs])
+    [next.jdbc :as jdbc])
   (:import (javax.sql DataSource)))
 
 
@@ -22,7 +21,13 @@
 (defmethod ig/init-key :db/postgres
   ^DataSource [_ cfgmap]
 
-  (hugsql/set-adapter! (hugsql-adapter-next-jdbc {:builder-fn rs/as-unqualified-lower-maps}))
+  ; enables hugsql & next.jdbc interoperability
+  (hugsql/set-adapter! (hugsql-adapter-next-jdbc jdbc/unqualified-snake-kebab-opts))
+
+  ; CAVEAT: The returned DataSource cannot be extended with customisable options. See:
+  ;   https://github.com/seancorfield/next-jdbc/blob/develop/doc/getting-started.md#datasources-connections--transactions
+
+  ; returns the plain Java DataSource
   (jdbc/get-datasource cfgmap))
 
 (defmethod ig/pre-init-spec :db/postgres

@@ -2,7 +2,7 @@
   (:require
     [clojure.spec.alpha :as s]
     [io.pedestal.http :as http-server]
-    [integrated-learning-system.spec :as shared-spec]))
+    [integrated-learning-system.specs :as shared-spec]))
 
 (s/def ::http-server/routes vector?)
 (s/def ::http-server/type #{:jetty :tomcat})
