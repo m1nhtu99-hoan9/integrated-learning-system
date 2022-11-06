@@ -5,15 +5,17 @@
     [io.pedestal.http :as pedestal-http]
     [integrant.core :as ig]
     [reitit.pedestal]
-    [integrated-learning-system.interceptors :refer [db-conn-interceptor routing-interceptor]]
+    [integrated-learning-system.interceptors :refer [create-db-conn-interceptor create-routing-interceptor]]
     [integrated-learning-system.specs.config.http :as s-http]
     [integrated-learning-system.specs.config.app :as s-app]))
 
 (s/def ::log-event #{::init-failed ::init-successfully ::closed ::close-failed})
 
-(defn- pedestal-server [pedestal-cfgmap {:as app-cfgmap, :keys [env]} postgres-cfgmap]
-  (let [routing-interceptor (routing-interceptor app-cfgmap)
-        db-conn-interceptor (db-conn-interceptor postgres-cfgmap)]
+(defn- make-pedestal-server [pedestal-cfgmap
+                             {:as app-cfgmap, :keys [env]}
+                             postgres-cfgmap]
+  (let [routing-interceptor (create-routing-interceptor app-cfgmap)
+        db-conn-interceptor (create-db-conn-interceptor postgres-cfgmap)]
     (-> pedestal-cfgmap
         (pedestal-http/default-interceptors)
         ; plug in the reitit-based routing interceptor
@@ -29,9 +31,14 @@
 ;; :server/app
 
 (defmethod ig/init-key :server/app
-  [_ {:as app-cfgmap, app-name :name, app-ver :version, app-env :env}]
+  [_ {:as      app-cfgmap
+      app-name :name
+      app-ver  :version
+      app-env  :env}]
 
-  (mulog/set-global-context! {:app-name app-name, :version app-ver, :env (name app-env)})
+  (mulog/set-global-context! {:app-name app-name
+                              :version  app-ver
+                              :env      (name app-env)})
   app-cfgmap)
 
 (defmethod ig/pre-init-spec :server/app
@@ -47,7 +54,7 @@
         app-cfgmap (:app-infos cfgmap)
         postgres-cfgmap (:db-infos cfgmap)]
     (try
-      (if-some [pedestal-server (-> (pedestal-server pedestal-cfgmap app-cfgmap postgres-cfgmap)
+      (if-some [pedestal-server (-> (make-pedestal-server pedestal-cfgmap app-cfgmap postgres-cfgmap)
                                     (pedestal-http/start))]
         (do
           (mulog/log ::init-successfully)

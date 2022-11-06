@@ -6,7 +6,6 @@
     [com.brunobonacci.mulog :as mulog]
     [com.brunobonacci.mulog.core :refer [publishers]]
     [integrant.core :as ig]
-    [integrated-learning-system.migration :refer [init-db!]]
     integrated-learning-system.services.db
     integrated-learning-system.services.server)
   (:import
@@ -35,7 +34,11 @@
 (defn start-console-log-publisher!
   "Register a new mulog console log publisher only when there are none yet"
   []
-  (when (not-any? #(->> ^MapEntry % (.getValue) (:publisher) (instance? ConsolePublisher))
+  (when (not-any? (fn [publisher]
+                    (->> ^MapEntry publisher
+                         (.getValue)
+                         (:publisher)
+                         (instance? ConsolePublisher)))
                   @publishers)
     (mulog/start-publisher! {:type :console, :pretty? true})))
 
@@ -50,7 +53,4 @@
         (ig/init [:server/app :server/http :db/postgres]))))
 
 (comment
-  (-main "config.edn")
-
-  ; run init migration script (WIP)
-  (init-db! (config :db)))
+  (-main "config.edn"))

@@ -3,7 +3,7 @@
     [camel-snake-kebab.core :as csk]
     [integrated-learning-system.handlers.commons :refer [handle-ping-fn]]
     [integrated-learning-system.routing.students :refer [create-student-routes]]
-    [integrated-learning-system.specs.server :as s-server]
+    [integrated-learning-system.routing.api.accounts :refer [v1-accounts-routes]]
     [muuntaja.core :as muuntaja]
     [reitit.coercion.spec :refer [coercion] :rename {coercion coercion-instance}]
     [reitit.dev.pretty :as reitit-pretty]
@@ -46,17 +46,23 @@
 (defn create-router [app-config]
   (http/router
     [(create-swagger-docs app-config)
-     ["/ping" {:get {:summary   "Health check"
-                     :responses {200 {:body {:message string?}}}
-                     :handler   (handle-ping-fn app-config)}}]
-     ["/api"
-      ["/v1"
-       [["/students" (create-student-routes)]]]]]
+     ["/api/ping" {:get {:summary   "Health check"
+                         :responses {200 {:body {:message string?}}}
+                         :handler   (handle-ping-fn app-config)}
+                   :swagger {:tags ["general"]}}]
+     ["/api/v1"
+      ["/students" (create-student-routes)]
+      (v1-accounts-routes)]]
     router-opts))
 
 (defn create-default-handler []
-  "Create fallback `ring` handler for when no matched routes found"
   (ring/routes
+    ; swagger-ui
     (create-swagger-ui-handler {:path "/"})
+    (comment
+      ; handling trailing splash
+      (ring/redirect-trailing-slash-handler {:method :strip}))
+    ; handling static resources
     (ring/create-resource-handler)
+    ; fallback handler for when no matched routes resolved
     (ring/create-default-handler)))

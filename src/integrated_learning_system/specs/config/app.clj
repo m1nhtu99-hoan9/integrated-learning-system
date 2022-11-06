@@ -1,6 +1,6 @@
 (ns integrated-learning-system.specs.config.app
   (:require [clojure.spec.alpha :as s]
-            [integrated-learning-system.spec :as shared-spec]
+            [integrated-learning-system.specs :as shared-spec]
             [integrated-learning-system.specs.server :as s-server]))
 
 (s/def ::name string?)

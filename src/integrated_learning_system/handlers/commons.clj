@@ -10,13 +10,11 @@
 
 (defn handle-ping-fn [{:as app-cfgmap, :keys [env]}]
   (fn [req]
-    (when (not= env :prod)
-      (mulog/log ::ping-received :request req))
-
     (let [global-failures (:failures req)
           payload (if (empty? (:failures req))
                     {:message "Healthy", :errors []}
-                    {:message "Unhealthy", :errors (map failure->error global-failures)})
+                    {:message "Unhealthy", :errors (map failure->error
+                                                        global-failures)})
           debug-payload {:scheme           (:scheme req)
                          :request-body     (:body-params req)
                          :app-config       app-cfgmap

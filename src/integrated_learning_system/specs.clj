@@ -40,39 +40,44 @@
     [(or prop-name :others) message]))
 
 (defn- spec-explanation->validation-result*
-  [defined-messages spec-explanation]
+  [defined-messages spec-explanation orig-value]
   (when-some [probs (::s/problems spec-explanation)]
     ; event logging
     (mulog/log ::entered--spec-explanation->validation-result
                :defined-validation-messages defined-messages
                :spec-explanation spec-explanation)
     ; processing
-    (let [orig-value (spec-explanation ::s/value)]
-      (letfn [(reduce-to-valid-probs [validation-probs spec-prob]
-                (comment (str "With `spec-prob` resolves to prop 'p' and validation message 'm': "
-                              "If 'm' is null, do nothing. Otherwise, aggregate it to `validation-probs` under 'p' key."))
-                (let [[prop-kw msg] (spec-problem->validation-problem defined-messages spec-prob orig-value)
-                      validation-msgs (validation-probs prop-kw)]
-                  (if (nil? msg)
-                    validation-probs
-                    (assoc! validation-probs
-                            prop-kw
-                            (if (nil? validation-msgs)
-                              [msg]
-                              (conj validation-msgs msg))))))]
-        (persistent!
-          (reduce reduce-to-valid-probs (transient {}) probs))))))
+    (letfn [(reduce-to-valid-probs [validation-probs spec-prob]
+              (comment (str "With `spec-prob` resolves to prop 'p' and validation message 'm': "
+                            "If 'm' is null, do nothing. Otherwise, aggregate it to `validation-probs` under 'p' key."))
+              (let [[prop-kw msg] (spec-problem->validation-problem defined-messages spec-prob orig-value)
+                    validation-msgs (validation-probs prop-kw)]
+                (if (nil? msg)
+                  validation-probs
+                  (assoc! validation-probs
+                          prop-kw
+                          (if (nil? validation-msgs)
+                            [msg]
+                            (conj validation-msgs msg))))))]
+      (persistent!
+        (reduce reduce-to-valid-probs (transient {}) probs)))))
+
 
 (defn- spec-explanation->validation-result
-  [defined-messages spec-explanation]
-  (try
-    (spec-explanation->validation-result* defined-messages spec-explanation)
-    (catch Exception exn
-      (mulog/log ::failed-spec-explanation->validation-result
-                 :exn exn)
-      nil)))
+  ([defined-messages spec-explanation orig-value]
+   (try
+     (spec-explanation->validation-result* defined-messages spec-explanation orig-value)
+     (catch Exception exn
+       (mulog/log ::failed-spec-explanation->validation-result
+                  :exn exn)
+       nil)))
+  ([defined-messages spec-explanation]
+   spec-explanation->validation-result defined-messages spec-explanation (::s/value spec-explanation)))
 
-(defn spec-validate [spec validation-messages candidate]
-  (->> candidate
-      (s/explain-data spec)
-      (spec-explanation->validation-result validation-messages)))
+
+(defn spec-validate
+  [spec validation-messages candidate & {:keys [orig-candidate]}]
+  (as-> candidate $
+        (s/explain-data spec $)
+        (spec-explanation->validation-result validation-messages $ (or orig-candidate candidate))))
+

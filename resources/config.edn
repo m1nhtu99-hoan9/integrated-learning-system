@@ -20,4 +20,4 @@
                  :dbname   #env POSTGRES_DB}
  :db/migrations {:migration-dir        "migrations"
                  :init-script          "schemas.sql"
-                 :init-in-transaction? true}}
+                 :init-in-transaction? false}}
