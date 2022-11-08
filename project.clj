@@ -30,6 +30,7 @@
                  [org.postgresql/postgresql "42.3.4"]
 
                  [camel-snake-kebab "0.4.3"]
+                 [org.clojure/algo.generic "0.1.3"]
                  [org.apache.commons/commons-lang3 "3.11"]
                  [clojure-interop/apache-commons-lang "1.0.0"]
                  [clojure.java-time "1.1.0"]

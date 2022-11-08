@@ -2,8 +2,8 @@
   (:require
     [camel-snake-kebab.core :as csk]
     [integrated-learning-system.handlers.commons :refer [handle-ping-fn]]
-    [integrated-learning-system.routing.students :refer [create-student-routes]]
     [integrated-learning-system.routing.api.accounts :refer [v1-accounts-routes]]
+    [integrated-learning-system.routing.api.timeslots :refer [v1-timeslots-routes]]
     [muuntaja.core :as muuntaja]
     [reitit.coercion.spec :refer [coercion] :rename {coercion coercion-instance}]
     [reitit.dev.pretty :as reitit-pretty]
@@ -51,8 +51,8 @@
                          :handler   (handle-ping-fn app-config)}
                    :swagger {:tags ["general"]}}]
      ["/api/v1"
-      ["/students" (create-student-routes)]
-      (v1-accounts-routes)]]
+      (v1-accounts-routes)
+      (v1-timeslots-routes)]]
     router-opts))
 
 (defn create-default-handler []
