@@ -9,10 +9,12 @@
 
 (defn resp-201
   ([uri payload]
-   (merge {:status 201, :body payload}
-          (when-not (*blank? uri)
-            {:headers {"Location" uri}
-             :body    {:uri uri}})))
+   (let [actual-uri (if (*blank? uri)
+                      nil
+                      uri)]
+     {:status 201,
+      :headers {"Location" actual-uri},
+      :body (assoc payload :uri actual-uri)}))
   ([uri] (resp-201 uri nil))
   ([] (resp-201 nil)))
 

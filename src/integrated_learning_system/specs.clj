@@ -4,13 +4,15 @@
             [com.brunobonacci.mulog :as mulog]))
 
 (defonce semver-regex
-         #"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")
+  #"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")
+
 (defonce email-regex
-         ; reference: https://owasp.org/www-community/OWASP_Validation_Regex_Repository
-         #"^[a-zA-Z0-9_+&*-]+(?:\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,15}$")
+  ; reference: https://owasp.org/www-community/OWASP_Validation_Regex_Repository
+  #"^[a-zA-Z0-9_+&*-]+(?:\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,15}$")
+
 (defonce phone-num-regex
-         ; reference: https://stackoverflow.com/a/16702965
-         #"^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$")
+  ; reference: https://stackoverflow.com/a/16702965
+  #"^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$")
 
 (s/def ::semver
   (s/and string? #(re-matches semver-regex %)))
@@ -76,7 +78,14 @@
 
 
 (defn spec-validate
+  "Validate candidate using clojure.spec.alpha/explain-data, then transform the result to user-friendly result map.
+  If the optional arg value orig-candidate is provided, it's regarded as pre-transformed/pre-coerced version of candidate."
   [spec validation-messages candidate & {:keys [orig-candidate]}]
+
+  ; CAVEAT: Because `clojure.spec` is still in alpha, and is not designed for use case of data validation,
+  ;  `clojure.spec.alpha/explain-data` does not coerce input while performing validation.
+  ;  Reference: https://stackoverflow.com/a/49056441
+
   (as-> candidate $
         (s/explain-data spec $)
         (spec-explanation->validation-result validation-messages $ (or orig-candidate candidate))))
