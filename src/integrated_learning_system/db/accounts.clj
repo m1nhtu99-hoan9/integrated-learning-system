@@ -1,8 +1,8 @@
 (ns integrated-learning-system.db.accounts
   (:require
+    [integrated-learning-system.utils.throwable :refer [exn->map]]
     [integrated-learning-system.db :as db]
     [integrated-learning-system.db.sql.commons :refer [path-to-sql]]
-    [org.apache.commons.lang3.StringUtils :refer [*equals]]
     [com.brunobonacci.mulog :as mulog]
     [next.jdbc.sql :as sql]
     [hugsql.core :as hugsql])
@@ -28,7 +28,7 @@
                                  :password password})})
 
     (catch Exception exn
-      (mulog/log ::failed-add-account! :exn exn :account-arg account)
+      (mulog/log ::failed-add-account! :exn (exn->map exn) :account-arg account)
       ; rethrows to let next.jdbc handle rollback of transaction, if any
       (throw exn))))
 
@@ -49,21 +49,9 @@
       {::db/result added-account-user})
 
     (catch Exception exn
-      (mulog/log ::failed-add-account-user! :exn exn :account-user-arg account-user)
+      (mulog/log ::failed-add-account-user!
+                 :exn (exn->map exn
+                                #(->> % (take 9) (into [])))
+                 :account-user-arg account-user)
       ; rethrows to let next.jdbc handle rollback of transaction, if any
       (throw exn))))
-
-
-(defn update-username! [db-conn current-username new-username]
-  (sql/update! db-conn :account {:username new-username} {:username current-username}))
-
-(defn update-password! [db-conn username current-password new-password]
-  (if-let [account (account-by-username db-conn {:username username})]
-    (if (*equals current-password (:password account))
-      (sql/update! db-conn :account {:password new-password} {:username username})
-      (str "Provided password doesn't match [" username "]'s current password."))
-    (str "Account [" username "] not found.")))
-
-(defn delete-account! [db-conn
-                       {:as account, :keys [username]}]
-  (sql/delete! db-conn :account {:username username}))

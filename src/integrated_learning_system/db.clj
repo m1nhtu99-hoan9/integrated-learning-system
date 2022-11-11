@@ -1,6 +1,7 @@
 (ns integrated-learning-system.db
   (:require [camel-snake-kebab.extras :as cske]
             [camel-snake-kebab.core :as csk]
+            [org.apache.commons.lang3.StringUtils :refer [*blank?]]
             [com.brunobonacci.mulog :as mulog]
             [next.jdbc :as jdbc]
             [next.jdbc.specs :as s-jdbc]
@@ -36,3 +37,12 @@
 
 (defn transform-column-keys [map]
   (cske/transform-keys csk/->snake_case_keyword map))
+
+
+(defn patternise-for-like [string]
+  (str "%"
+       (if (*blank? string)
+         ""
+         string)
+       "%"))
+

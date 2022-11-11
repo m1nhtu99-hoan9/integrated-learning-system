@@ -2,15 +2,15 @@
   (:require
     [clojure.spec.alpha :as s]
     [com.brunobonacci.mulog :as mulog]
-    [next.jdbc :as jdbc]
     [integrated-learning-system.db :as db]
     [integrated-learning-system.db.accounts :as accounts-db]
-    [integrated-learning-system.db.teachers :as teachers-db]
     [integrated-learning-system.db.students :as students-db]
+    [integrated-learning-system.db.teachers :as teachers-db]
+    [integrated-learning-system.handlers.commons.api :as api]
     [integrated-learning-system.specs :refer [spec-validate]]
     [integrated-learning-system.specs.requests.accounts :as s-accounts]
-    [integrated-learning-system.handlers.commons.api :as api])
-  (:import [org.apache.commons.lang3 NotImplementedException]))
+    [integrated-learning-system.utils.throwable :refer [exn->map]]
+    [next.jdbc :as jdbc]))
 
 
 ;;-- GET handler
@@ -35,8 +35,6 @@
         validation-errors (spec-validate payload-spec
                                          s-accounts/validation-messages
                                          request),
-        ; CAVEAT: https://stackoverflow.com/a/49056441
-        ; `conformed-payload` is not 100% guaranteed to be coerced using defined conformers.
         conformed-payload (if (some? validation-errors)
                             nil
                             (s/conform payload-spec request))]
@@ -48,12 +46,14 @@
   (try
     (accounts-db/add-account-user! db-tx (assoc conformed-body-params :account-id account-id))
     (teachers-db/add-teacher! db-tx {:account-id account-id})
-    (api/resp-201 (str "/accounts/" username))
+    (api/resp-201 (str "/teachers/" username))
 
     (catch Exception exn
       (.rollback db-tx)
       (mulog/log ::failed-process-add-teacher
-                 :exn exn
+                 :exn (exn->map exn
+                                (fn [trace-stack]
+                                  (->> trace-stack (take 5) (into []))))
                  :account-id account-id
                  :request-body conformed-body-params)
       (api/resp-500 (str "Failed to register a teacher account with username [" username "].")
@@ -63,12 +63,14 @@
   (try
     (accounts-db/add-account-user! db-tx (assoc conformed-body-params :account-id account-id))
     (students-db/add-student! db-tx {:account-id account-id})
-    (api/resp-201 (str "/accounts/" username))
+    (api/resp-201 (str "/students/" username))
 
     (catch Exception exn
       (.rollback db-tx)
       (mulog/log ::failed-process-add-student
-                 :exn exn
+                 :exn (exn->map exn
+                                (fn [trace-stack]
+                                  (->> trace-stack (take 5) (into []))))
                  :account-id account-id
                  :request-body conformed-body-params)
       (api/resp-500 (str "Failed to register a student account with username [" username "].")
@@ -83,7 +85,9 @@
     (catch Exception exn
       (.rollback db-tx)
       (mulog/log ::failed-process-add-admin
-                 :exn exn
+                 :exn (exn->map exn
+                                (fn [trace-stack]
+                                  (->> trace-stack (take 5) (into []))))
                  :account-id account-id
                  :request-body conformed-body-params)
       (api/resp-500 (str "Failed to register an admin account with username [" username "].")
@@ -105,7 +109,9 @@
 
     (catch Exception exn
       (mulog/log ::failed-validate-register-account
-                 :exn exn
+                 :exn (exn->map exn
+                                (fn [trace-stack]
+                                  (->> trace-stack (take 3) (into []))))
                  :body-params body-params)
       {:non-ok-response (api/resp-500 (str "Failed to process this account registration request.")
                                       nil)})))
@@ -118,16 +124,16 @@
       non-ok-response
       ; else: open `db-conn`, then begin transaction `db-tx`
       (jdbc/with-transaction [db-tx db-conn]
-                             (let [{added-account ::db/result, account-error ::db/error} (accounts-db/add-account! db-tx payload),
-                                   {account-id :id} added-account]
-                               (if (some? account-error)
-                                 ; rollback, then returns code 422
-                                 (do
-                                   (.rollback db-tx)
-                                   (api/resp-422 "Data duplication" account-error))
-                                 ; else, process with adding
-                                 (case role
-                                   ; :unknown has been filtered out by validation
-                                   :admin (-process-add-admin db-tx account-id payload)
-                                   :teacher (-process-add-teacher db-tx account-id payload)
-                                   :student (-process-add-student db-tx account-id payload))))))))
+        (let [{added-account ::db/result, account-error ::db/error} (accounts-db/add-account! db-tx payload),
+              {account-id :id} added-account]
+          (if (some? account-error)
+            ; rollback, then returns code 422
+            (do
+              (.rollback db-tx)
+              (api/resp-422 "Data duplication" account-error))
+            ; else, process with adding
+            (case role
+              ; :unknown has been filtered out by validation
+              :admin (-process-add-admin db-tx account-id payload)
+              :teacher (-process-add-teacher db-tx account-id payload)
+              :student (-process-add-student db-tx account-id payload))))))))

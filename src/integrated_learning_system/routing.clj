@@ -3,6 +3,7 @@
     [camel-snake-kebab.core :as csk]
     [integrated-learning-system.handlers.commons :refer [handle-ping-fn]]
     [integrated-learning-system.routing.api.accounts :refer [v1-accounts-routes]]
+    [integrated-learning-system.routing.api.courses :refer [v1-courses-routes]]
     [integrated-learning-system.routing.api.timeslots :refer [v1-timeslots-routes]]
     [muuntaja.core :as muuntaja]
     [reitit.coercion.spec :refer [coercion] :rename {coercion coercion-instance}]
@@ -52,6 +53,7 @@
                    :swagger {:tags ["general"]}}]
      ["/api/v1"
       (v1-accounts-routes)
+      (v1-courses-routes)
       (v1-timeslots-routes)]]
     router-opts))
 
