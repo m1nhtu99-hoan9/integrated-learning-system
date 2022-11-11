@@ -23,7 +23,7 @@
 
 (defn prop-time-invalid-value [prop-name actual-value expected-format]
   (str "Invalid time value for " prop-name ": '" actual-value
-       ". Expected format: " expected-format))
+       "'. Expected format: " expected-format))
 
 (defn prop-string-email-invalid [prop-name actual-value]
   (let [for-snippet (if (.equals "email" prop-name)

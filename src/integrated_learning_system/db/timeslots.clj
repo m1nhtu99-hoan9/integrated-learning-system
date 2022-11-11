@@ -6,20 +6,31 @@
     [integrated-learning-system.db.sql.commons :refer [path-to-sql]]
     [integrated-learning-system.utils.datetime :as dt]
     [java-time.api :as jt])
-  (:import [java.sql Time]
-           [java.time LocalTime]
+  (:import [java.time LocalTime]
            [java.util UUID]))
 
-(defn last-timeslot [db-conn]
+(defn -last-timeslot [db-conn]
   (comment "this fn gonna be redefined by hugsql."))
-(defn all-timeslots [db-conn]
+(defn -all-timeslots [db-conn]
   (comment "this fn gonna be redefined by hugsql."))
 (defn -add-timeslot! [db-conn {:keys [timeslot-id, number, start-at, duration-mins]}]
   (comment "this fn gonna be redefined by hugsql."))
 (hugsql/def-db-fns (path-to-sql "timeslots"))
 
 
-(defn- -add-first-timeslot! [db-conn {:as timeslot :keys [start-at duration-mins]}]
+(defn- -stringify-start-at-time [^LocalTime start-at]
+  (dt/local-time->string start-at :time/without-seconds))
+
+(defn last-timeslot [db-conn]
+  (some-> (-last-timeslot db-conn)
+          (update :start-at #(jt/local-time %))))
+
+(defn all-timeslots [db-conn]
+  (some->> (-all-timeslots db-conn)
+           (map (fn [timeslot]
+                  (update timeslot :start-at #(.toLocalTime %))))))
+
+(defn -add-first-timeslot! [db-conn {:as timeslot :keys [start-at duration-mins]}]
   (try
     (let [record (-> {:id (UUID/randomUUID), :number 1, :start-at start-at, :duration-mins duration-mins}
                      db/transform-column-keys),
@@ -33,17 +44,17 @@
       ; rethrows to let next.jdbc handle rollback of transaction, if any
       (throw exn))))
 
-(defn- -append-timeslot! [db-conn
-                          {:as latest-timeslot, latest-timeslot-number :number}
-                          {:as timeslot, :keys [start-at duration-mins]}]
+(defn -append-timeslot! [db-conn
+                         {:as latest-timeslot, latest-timeslot-number :number}
+                         {:as timeslot, :keys [start-at duration-mins]}]
   (try
-    (let [^Time prev-start (:start-at latest-timeslot),
+    (let [prev-start (:start-at latest-timeslot),
           prev-end (jt/plus prev-start
                             (jt/minutes (:duration-mins latest-timeslot)))]
       (if (jt/before? start-at prev-end)
         {::db/error (:start-at (str "Invalid start time: '" start-at
                                     "'. New time-slot is expected to not start before '"
-                                    (dt/local-time->string start-at :time/without-seconds) "'."))},
+                                    (-stringify-start-at-time start-at) "'."))},
         ; else: process adding
         (let [record (db/transform-column-keys {:id            (UUID/randomUUID)
                                                 :number        (inc latest-timeslot-number)
@@ -63,13 +74,21 @@
 
 
 (defn add-timeslot! [db-conn {:as timeslot, :keys [duration-mins], :or {duration-mins 45}}]
-  (let [{:keys [::db/result, ::db/error]} (if-some [latest-timeslot (last-timeslot db-conn)]
-                                            (-append-timeslot! db-conn latest-timeslot timeslot)
-                                            (-add-first-timeslot! db-conn timeslot))]
-    ; CAVEAT: :start-at value is of type java.util.Date in returned map.
-    ;   It's viable to config hugsql to universally coerce all java.util.Date values to java.time.LocalDateTime:
-    ;   https://github.com/layerware/hugsql/issues/92#issuecomment-490421667
-    ;   But that would be too big of a side effect.
-    {::db/result (some-> result
-                         (update :start-at #(jt/local-time %))),
-     ::db/error error}))
+  (try
+    (let [{:as added-timeslot} (if-some [latest-timeslot (last-timeslot db-conn)]
+                                 (-append-timeslot! db-conn latest-timeslot timeslot)
+                                 (-add-first-timeslot! db-conn timeslot))]
+      (update-in added-timeslot
+                 [::db/result :start-at]
+                 (fn [start-at-datetime]
+                   (when (some? start-at-datetime)
+                     (-> start-at-datetime
+                         (.toLocalTime)
+                         -stringify-start-at-time)))))
+
+    (catch Exception exn
+      (mulog/log ::failed-append-timeslot!
+                 :exn (-> exn Throwable->map (dissoc :trace))
+                 :timeslot-arg timeslot)
+      ; rethrows to let next.jdbc handle rollback of transaction, if any
+      (throw exn))))

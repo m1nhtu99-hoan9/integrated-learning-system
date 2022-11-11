@@ -4,10 +4,13 @@
     [integrant.core :refer [load-namespaces] :as ig]
     [integrant.repl :as ig-repl]
     [integrated-learning-system.server :refer [config-fname->map start-console-log-publisher!]]))
+(require '[integrated-learning-system.db :as db])
+(require '[integrated-learning-system.utils.datetime :as dt])
 (require '[integrated-learning-system.routing :as routing])
 (require '[integrant.repl.state :as ig-state])
 (require '[reitit.core :as reitit])
 (require '[reitit.ring :as ring])
+(require '[user.data-seeding :as seeding])
 
 (defonce ^:private config-fname "config_dev.edn")
 

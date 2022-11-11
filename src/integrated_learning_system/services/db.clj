@@ -1,4 +1,5 @@
 (ns integrated-learning-system.services.db
+  (:use [integrated-learning-system.services.db.hugsql])  ;; load the overridden hugsql result & command handlers
   (:require
     [clojure.spec.alpha :as s]
     [integrant.core :as ig]
@@ -24,10 +25,8 @@
   ; enables hugsql & next.jdbc interoperability
   (hugsql/set-adapter! (hugsql-adapter-next-jdbc jdbc/unqualified-snake-kebab-opts))
 
-  ; CAVEAT: The returned DataSource cannot be extended with customisable options. See:
+  ; CAVEAT: The returned plain DataSource cannot be extended with customisable options. See:
   ;   https://github.com/seancorfield/next-jdbc/blob/develop/doc/getting-started.md#datasources-connections--transactions
-
-  ; returns the plain Java DataSource
   (jdbc/get-datasource cfgmap))
 
 (defmethod ig/pre-init-spec :db/postgres

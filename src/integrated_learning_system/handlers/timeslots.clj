@@ -2,6 +2,7 @@
   (:require
     [com.brunobonacci.mulog :as mulog]
     [next.jdbc :as jdbc]
+    [integrated-learning-system.utils.throwable :refer [exn->map]]
     [integrated-learning-system.db :as db]
     [integrated-learning-system.db.timeslots :as timeslots-db]
     [integrated-learning-system.specs :refer [spec-validate]]
@@ -44,13 +45,23 @@
       non-ok-response
       ; else: open `db-conn`, then begin transaction `db-tx`
       (jdbc/with-transaction [db-tx db-conn]
-        (let [{added-timeslot ::db/result, error ::db/error} (timeslots-db/add-timeslot! db-tx request),
-              {:keys [number]} added-timeslot]
-          (if (some? error)
-            ; rollback db-tx, then returns code 422
-            (do
-              (.rollback db-tx)
-              (api/resp-422 "Data conflicts" error))
-            ; else, returns code 201
-            (api/resp-201 (str "/timeslots/" number)
-                          (select-keys added-timeslot [:number :start-at :duration-mins]))))))))
+        (try
+          (let [{added-timeslot ::db/result, error ::db/error} (timeslots-db/add-timeslot! db-tx request),
+                {:keys [number]} added-timeslot]
+            (if (some? error)
+              ; rollback db-tx, then returns code 422
+              (do
+                (.rollback db-tx)
+                (api/resp-422 "Data conflicts" error))
+              ; else, returns code 201
+              (api/resp-201 (str "/timeslots/" number)
+                            (select-keys added-timeslot [:number :start-at :duration-mins]))))
+
+          (catch Exception exn
+            (mulog/log ::failed-insert-timeslot
+                       :exn (exn->map exn
+                                      (fn [trace-stack]
+                                        (-> trace-stack (take 8) (into []))))
+                       :request request)
+            (api/resp-500 "Failed to process this timeslot insertion request."
+                          nil)))))))
