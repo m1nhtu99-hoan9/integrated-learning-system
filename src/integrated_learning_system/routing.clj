@@ -4,6 +4,7 @@
     [integrated-learning-system.handlers.commons :refer [handle-ping-fn]]
     [integrated-learning-system.routing.api.accounts :refer [v1-accounts-routes]]
     [integrated-learning-system.routing.api.courses :refer [v1-courses-routes]]
+    [integrated-learning-system.routing.api.classes :refer [v1-classes-routes]]
     [integrated-learning-system.routing.api.timeslots :refer [v1-timeslots-routes]]
     [muuntaja.core :as muuntaja]
     [reitit.coercion.spec :refer [coercion] :rename {coercion coercion-instance}]
@@ -47,20 +48,21 @@
 (defn create-router [app-config]
   (http/router
     [(create-swagger-docs app-config)
-     ["/api/ping" {:get {:summary   "Health check"
-                         :responses {200 {:body {:message string?}}}
-                         :handler   (handle-ping-fn app-config)}
+     ["/api/ping" {:get     {:summary   "Health check"
+                             :responses {200 {:body {:message string?}}}
+                             :handler   (handle-ping-fn app-config)}
                    :swagger {:tags ["general"]}}]
      ["/api/v1"
       (v1-accounts-routes)
       (v1-courses-routes)
+      (v1-classes-routes)
       (v1-timeslots-routes)]]
     router-opts))
 
 (defn create-default-handler []
   (ring/routes
     ; swagger-ui
-    (create-swagger-ui-handler {:path "/"})
+    (create-swagger-ui-handler {:path "/swagger"})
     (comment
       ; handling trailing splash
       (ring/redirect-trailing-slash-handler {:method :strip}))
