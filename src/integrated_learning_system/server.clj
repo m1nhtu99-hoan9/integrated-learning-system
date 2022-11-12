@@ -9,9 +9,9 @@
     integrated-learning-system.services.db
     integrated-learning-system.services.server)
   (:import
-    (clojure.lang MapEntry)
-    (com.brunobonacci.mulog.publisher ConsolePublisher)
-    (java.io FileNotFoundException)))
+   [clojure.lang MapEntry]
+   [com.brunobonacci.mulog.publisher ConsolePublisher]
+   [java.io FileNotFoundException]))
 
 (s/def ::state #{:started :resumed :stopped :restarted :failed})
 (s/def ::log-event #{::resource-config-file-not-found ::config-resolved})

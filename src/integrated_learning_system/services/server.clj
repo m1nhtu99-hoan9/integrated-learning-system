@@ -7,7 +7,8 @@
     [reitit.pedestal]
     [integrated-learning-system.interceptors :refer [create-db-conn-interceptor create-routing-interceptor]]
     [integrated-learning-system.specs.config.http :as s-http]
-    [integrated-learning-system.specs.config.app :as s-app]))
+    [integrated-learning-system.specs.config.app :as s-app]
+    [integrated-learning-system.utils.config :refer [->port-number]]))
 
 (s/def ::log-event #{::init-failed ::init-successfully ::closed ::close-failed})
 
@@ -50,7 +51,9 @@
 
 (defmethod ig/init-key :server/http
   [_ cfgmap]
-  (let [pedestal-cfgmap (dissoc cfgmap :app-infos :db-infos)
+  (let [pedestal-cfgmap (-> cfgmap
+                            (dissoc :app-infos :db-infos)
+                            (update ::pedestal-http/port ->port-number))
         app-cfgmap (:app-infos cfgmap)
         postgres-cfgmap (:db-infos cfgmap)]
     (try
