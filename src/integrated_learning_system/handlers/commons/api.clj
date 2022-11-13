@@ -18,6 +18,9 @@
   ([uri] (resp-201 uri nil))
   ([] (resp-201 nil)))
 
+(defn resp-302 [url]
+  (responses/found url))
+
 (defn resp-401
   ([title errors-payload]
    {:status 401

@@ -23,6 +23,7 @@
                  [io.pedestal/pedestal.service "0.5.10"]
                  [io.pedestal/pedestal.jetty "0.5.10"]
                  [metosin/reitit-pedestal "0.5.18"]
+                 [hiccup "1.0.5"]
 
                  [com.github.seancorfield/next.jdbc "1.2.796"]
                  [com.layerware/hugsql-core "0.5.3"]
