@@ -9,6 +9,12 @@
                   (responses/content-type (default-mime-types "html"))))
   ([] (resp-200 nil)))
 
+(defn resp-400
+  ([body-doc] (-> body-doc
+                  (responses/bad-request)
+                  (responses/content-type (default-mime-types "html"))))
+  ([] (resp-400 nil)))
+
 (defn resp-404
   ([body-doc] (-> body-doc
                   (responses/not-found)

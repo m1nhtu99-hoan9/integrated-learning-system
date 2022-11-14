@@ -21,15 +21,15 @@
    [:span {:aria-hidden "true"}]
    [:span {:aria-hidden "true"}]])
 
-(defn navbar []
-  [:nav.navbar {:class "sticky" :role "navigation" :aria-label "main navigation"}
+(defn navbar [{:as props}]
+  [:nav.navbar.is-fixed-top {:class "sticky" :role "navigation" :aria-label "main navigation"}
    [:div.navbar-brand
     [:a.navbar-item {:href "/"}
      [:span#brand-title "Integrated Learning System"]]
     navbar-burger]
    [:div.navbar-menu {:id "navbar-menu-contents"}
     [:div.navbar-start
-     [:a.navbar-item "Timetable"]
+     [:a.navbar-item {:href "/timetable"} "Timetable"]
      [:a.navbar-item "Classes"]
      div-navbar-more-items]
     [:div.navbar-end

@@ -4,6 +4,8 @@
     [integrated-learning-system.routing :as routing]
     [integrated-learning-system.db :refer [halt-db-conn init-db-conn]]))
 
+;region db-conn
+
 (defn -fn-register-db-conn [ctx postgres-cfgmap]
   (if-some [db-conn (init-db-conn postgres-cfgmap)]
     ; non-null -> includes the initiated `db-conn` to the service collection
@@ -35,8 +37,14 @@
      :enter #(-fn-register-db-conn % postgres-cfgmap)
      :leave -fn-unregister-db-conn}))
 
+;endregion
+
+;region routing
+
 (defn create-routing-interceptor [app-config]
   "Create `pedestal` interceptor for `reitit`-based routing"
 
   (reitit.pedestal/routing-interceptor (routing/create-router app-config)
                                        (routing/create-default-handler)))
+
+;endregion

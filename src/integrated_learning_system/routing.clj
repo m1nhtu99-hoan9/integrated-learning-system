@@ -2,6 +2,7 @@
   (:require
     [camel-snake-kebab.core :as csk]
     [integrated-learning-system.handlers.commons :refer [handle-api-ping-fn redirect-to-page-404]]
+    [integrated-learning-system.interceptors.http :refer [safe-coerce-request-interceptor]]
     [integrated-learning-system.routing.api :refer [api-v1-routes]]
     [integrated-learning-system.routing.pages :refer [webpage-routes]]
     [muuntaja.core :as muuntaja]
@@ -9,9 +10,11 @@
     [reitit.dev.pretty :as reitit-pretty]
     [reitit.http :as http]
     [reitit.http.interceptors.exception :refer [exception-interceptor]]
+    [reitit.http.interceptors.multipart :refer [multipart-interceptor]]
     [reitit.http.interceptors.muuntaja :refer [format-negotiate-interceptor
                                                format-request-interceptor
                                                format-response-interceptor]]
+    [reitit.http.interceptors.parameters :refer [parameters-interceptor]]
     [reitit.pedestal]
     [reitit.ring :as ring]
     [reitit.swagger :refer [create-swagger-handler swagger-feature]]
@@ -29,15 +32,26 @@
                                     {:decode-key-fn csk/->kebab-case-keyword})),
         muuntaja-instance (muuntaja/create muuntaja-opts),
         interceptors [swagger-feature
+                      ;; for processing query-params & form-params
+                      (parameters-interceptor)
+                      ;; for processing header content negotiation
                       (format-negotiate-interceptor muuntaja-instance)
-                      (format-response-interceptor muuntaja-instance)
-                      (format-request-interceptor muuntaja-instance)]]
+                      ;; for response body serialisation
+                      (format-response-interceptor)
+                      ;; for exception handling (only under prod env)
+                      :exception-interceptor
+                      ;; for request body deserialisation
+                      (format-request-interceptor muuntaja-instance)
+                      ;; for coercing request params
+                      (safe-coerce-request-interceptor)
+                      ;; for handling HTTP multipart request
+                      (multipart-interceptor)]]
     {:exception reitit-pretty/exception
      :data      {:coercion     coercion-instance
                  :muuntaja     muuntaja-instance
-                 :interceptors (if (= env :prod)
-                                 (conj interceptors exception-interceptor)
-                                 interceptors)}}))
+                 :interceptors (replace {:exception-interceptor (when (= env :prod)
+                                                                  (exception-interceptor))}
+                                        interceptors)}}))
 
 
 (defn- create-swagger-docs [{:keys [name version]}]
@@ -48,7 +62,9 @@
                                                :version     version}}
                           :handler (create-swagger-handler)}}])
 
-(defn create-router [app-config]
+(defn create-router
+  "The reitit.http/router powers the app's primary routes."
+  [app-config]
   (http/router
     [["/api/ping" {:get     {:summary   "Health check"
                              :responses {200 {:body {:message string?}}}
@@ -59,7 +75,9 @@
      (create-swagger-docs app-config)]
     (router-opts app-config)))
 
-(defn create-default-handler []
+(defn create-default-handler
+  "ring composite route handler responsible for routing for swagger-ui, static resource & HTTP 404 request."
+  []
   (ring/routes
     ; swagger-ui
     (create-swagger-ui-handler {:path "/swagger"})

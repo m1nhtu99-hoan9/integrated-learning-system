@@ -6,12 +6,6 @@ body {
   font-family: 'Source Sans Pro', sans-serif;
 }
 
-.sticky {
-  position: fixed;
-  top: 0;
-  width: 100%;
-}
-
 span#brand-title {
   font-family: 'Bitter', serif;
   font-size: 1.5em;

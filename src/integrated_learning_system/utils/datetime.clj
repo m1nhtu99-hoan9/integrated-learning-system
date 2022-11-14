@@ -1,11 +1,10 @@
 (ns integrated-learning-system.utils.datetime
-  (:require [com.brunobonacci.mulog :as mulog]
-            [clojure.algo.generic.functor :refer [fmap]]
+  (:require [clojure.algo.generic.functor :refer [fmap]]
+            [com.brunobonacci.mulog :as mulog]
             [java-time.api :as jt])
-  (:import [java.time LocalDate LocalTime]
-           [java.time.format DateTimeFormatterBuilder]
-           [clojure.lang Keyword]
-           [org.apache.commons.lang3 NotImplementedException]))
+  (:import [clojure.lang Keyword]
+           [java.time DateTimeException LocalDate LocalTime]
+           [java.time.format DateTimeFormatterBuilder]))
 
 
 (defonce
@@ -23,9 +22,9 @@
   (vector "dd/MM/uuuu" "uuuu-MM-dd"))
 
 (defonce time-patterns
-  {:time/extended "HH:mm:ss.SSS"
-   :time/without-milliseconds "HH:mm:ss"
-   :time/without-seconds "HH:mm"})
+         {:time/extended             "HH:mm:ss.SSS"
+          :time/without-milliseconds "HH:mm:ss"
+          :time/without-seconds      "HH:mm"})
 
 (defonce
   ^:private local-time-formatters
@@ -86,3 +85,27 @@
   ([local-time]
    (local-time->string local-time :time/extended)))
 
+
+(defn aligned-week-of-year
+  ; compliant with https://en.wikipedia.org/wiki/ISO_8601
+  ([^LocalDate date]
+   (.get date (jt/field :aligned-week-of-year)))
+  ([] (aligned-week-of-year (jt/local-date))))
+
+
+(defn with-week-date
+  ([^LocalDate date, {:keys [week-of-year day-of-week]
+                      :or   {day-of-week 1}}]
+   (try
+     (let [d (if (nil? week-of-year)
+               date
+               (.with date
+                      (jt/field :aligned-week-of-year)
+                      week-of-year))]
+       (.with d
+              (jt/field :day-of-week)
+              day-of-week))
+     (catch DateTimeException date-time-exn
+       {::error (ex-message date-time-exn)})))
+  ([props] (with-week-date (jt/local-date)
+                           props)))

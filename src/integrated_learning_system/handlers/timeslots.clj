@@ -12,6 +12,8 @@
 
 ;;-- POST handler
 
+;region timeslot-add-request
+
 (defn- -coerce-to-timeslot-add-request [body-params]
   (let [request (body-params->timeslot-add-request body-params),
         errors (spec-validate ::s-timeslots/timeslot-add-request
@@ -65,3 +67,5 @@
                        :request request)
             (api/resp-500 "Failed to process this timeslot insertion request."
                           nil)))))))
+
+;endregion

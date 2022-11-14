@@ -1,6 +1,8 @@
 (ns integrated-learning-system.views.commons
   (:use hiccup.core)
-  (:require [hiccup.page :refer [include-css]]))
+  (:require
+    [integrated-learning-system.views.layouts :refer [navbar]]
+    [hiccup.page :refer [include-css]]))
 
 (defn- base-head [{:keys [title]}]
   [:head
@@ -16,8 +18,14 @@
      "https://cdn.jsdelivr.net/npm/docsearch.js@2/dist/cdn/docsearch.min.css"
      "https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,400;0,500;0,700;1,500;1,700&family=Source+Sans+Pro:ital@0;1&display=swap")])
 
-(defn head [head-props & elems]
+(defn head [{:as head-props} & elems]
   (html (as-> head-props $
               (base-head $)
               (concat $ elems)
               (into [] $))))
+
+(defn body [{:keys [navbar-props]} & elems]
+  (html (->> elems
+             (concat [:body.has-navbar-fixed-top
+                      (navbar navbar-props)])
+             (into []))))
