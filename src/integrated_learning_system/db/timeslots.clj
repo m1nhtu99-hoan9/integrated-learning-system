@@ -30,6 +30,8 @@
            (map (fn [timeslot]
                   (update timeslot :start-at #(.toLocalTime %))))))
 
+;region add-timeslot!
+
 (defn -add-first-timeslot! [db-conn {:as timeslot :keys [start-at duration-mins]}]
   (try
     (let [record (-> {:id (UUID/randomUUID), :number 1, :start-at start-at, :duration-mins duration-mins}
@@ -92,3 +94,5 @@
                  :timeslot-arg timeslot)
       ; rethrows to let next.jdbc handle rollback of transaction, if any
       (throw exn))))
+
+;endregion

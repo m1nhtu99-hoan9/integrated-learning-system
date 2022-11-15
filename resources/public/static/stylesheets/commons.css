@@ -3,12 +3,22 @@
 }
 
 body {
-  font-family: 'Source Sans Pro', sans-serif;
+  line-height: 1.5;
+}
+
+.navbar, .navbar-end, .navbar-menu, .navbar-start {
+  font-size: 1.025em;
+}
+
+table {
+  font-family: 'Source Sans Pro', sans-serif;;
 }
 
 span#brand-title {
-  font-family: 'Bitter', serif;
+  font-family: 'Roboto Serif', serif;
+  font-weight: 600;
   font-size: 1.5em;
-  font-weight: bold;
   color: var(--violet-bold);
 }
+
+span.icon-text.is-medium > span {}

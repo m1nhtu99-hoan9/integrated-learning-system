@@ -3,9 +3,11 @@
             [com.brunobonacci.mulog :as mulog]
             [java-time.api :as jt])
   (:import [clojure.lang Keyword]
-           [java.time DateTimeException LocalDate LocalTime]
-           [java.time.format DateTimeFormatterBuilder]))
+           [java.time LocalDate LocalTime DateTimeException DayOfWeek]
+           [java.time.format DateTimeFormatterBuilder TextStyle]
+           [java.util Locale]))
 
+;region local-date-time<->string
 
 (defonce
   ^{:doc "User-friendly date-only patterns"}
@@ -85,13 +87,16 @@
   ([local-time]
    (local-time->string local-time :time/extended)))
 
+;endregion
+
+; region week-of-year; day-of-week
 
 (defn aligned-week-of-year
   ; compliant with https://en.wikipedia.org/wiki/ISO_8601
+  ; further reading: https://en.wikipedia.org/wiki/ISO_week_date
   ([^LocalDate date]
    (.get date (jt/field :aligned-week-of-year)))
   ([] (aligned-week-of-year (jt/local-date))))
-
 
 (defn with-week-date
   ([^LocalDate date, {:keys [week-of-year day-of-week]
@@ -109,3 +114,33 @@
        {::error (ex-message date-time-exn)})))
   ([props] (with-week-date (jt/local-date)
                            props)))
+
+(defn- -text-style-keyword->enum [keyword]
+  (case keyword
+    :text-style/full TextStyle/FULL
+    :text-style/full-standalone TextStyle/FULL_STANDALONE
+    :text-style/short TextStyle/SHORT
+    :text-style/short-standalone TextStyle/SHORT_STANDALONE
+    :text-style/narrow TextStyle/NARROW
+    :text-style/narrow-standalone TextStyle/NARROW_STANDALONE
+    (throw (IllegalArgumentException. (str keyword)))))
+
+(defn day-of-week-num->string
+  ([^Integer num
+    {:keys [style locale]
+     :or {style :text-style/full, locale (Locale/of "en" "gb")}}]
+   (-> num
+       (DayOfWeek/of)
+       (.getDisplayName (-text-style-keyword->enum style)
+                        locale)))
+  ([num] (day-of-week-num->string num nil)))
+
+;endregion
+
+(defn date-range
+  "seq of dates from `start-date` to `end-date` (inclusive)"
+  [^LocalDate start-date, ^LocalDate end-date]
+  (for [d (iterate #(jt/plus % (jt/days 1))
+                   start-date)
+        :while (jt/not-after? d end-date)]
+    d))
