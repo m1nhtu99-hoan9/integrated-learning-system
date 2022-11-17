@@ -1,9 +1,13 @@
 -- :name -last-timeslot :? :1
-SELECT * FROM timeslot ORDER BY number DESC
-                       LIMIT 1;
+SELECT id, number, start_at, duration_mins
+FROM timeslot
+ORDER BY number DESC
+LIMIT 1;
 
 -- :name -all-timeslots :? :*
-SELECT * FROM timeslot ORDER BY number;
+SELECT id, number, start_at, duration_mins
+FROM timeslot
+ORDER BY number;
 
 -- :name -add-timeslot! :returning-execute :1
 INSERT INTO timeslot (id, number, start_at, duration_mins)

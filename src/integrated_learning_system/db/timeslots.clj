@@ -26,7 +26,8 @@
           (update :start-at #(jt/local-time %))))
 
 (defn all-timeslots [db-conn]
-  (some->> (-all-timeslots db-conn)
+  (some->> db-conn
+           (-all-timeslots)
            (map (fn [timeslot]
                   (update timeslot :start-at #(.toLocalTime %))))))
 

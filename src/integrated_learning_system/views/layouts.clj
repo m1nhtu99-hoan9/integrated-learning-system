@@ -45,34 +45,42 @@
 
 ;endregion
 
-(defn param-errors-banner [{:as param-errors}]
+;region banners
+
+(defn errors-banner [{:keys [title errors]}]
   (html
-    [:section.hero.is-danger
+    [:section.hero.is-danger.is-medium
      [:div.hero-body
       [:p.title
        [:span.icon-text
         [:span.icon
          [:i.fas.fa-exclamation-circle]]
-        [:span "URL contains invalid parameters:"]]]
+        [:span (h title)]]]
       [:div.content
        [:ul
-        (for [[param-name error-messages] param-errors]
+        (for [[field-name error-messages] errors]
           [:li
-           [:code (h param-name)]
+           [:code (h field-name)]
            [:ul (for [error-message error-messages]
                   [:li error-message])]])]]]]))
 
+(defn param-errors-banner [{:as param-errors}]
+  (errors-banner {:title "URL contains invalid parameters:"
+                  :errors param-errors}))
+
+;endregion
+
 ;region timetable-table
 
-(defn- -timetable-date-heads [{:keys [dates]}]
-  (for [date dates
+(defn- -timetable-date-heads [{:keys [weekdays]}]
+  (for [date weekdays
         :let [day-of-week-num (jt/as date :day-of-week),
               day-of-week-abbr (dt/day-of-week-num->string day-of-week-num {:style :text-style/short}),
               day-of-week-full (dt/day-of-week-num->string day-of-week-num {:style :text-style/full})]]
     [:th {:data-day-of-week day-of-week-full
-          :data-date (jt/format "dd/MM/uuuu" date)
-          :scope "col"
-          :style "text-align: center;"}
+          :data-date        (jt/format "dd/MM/uuuu" date)
+          :scope            "col"
+          :style            "text-align: center;"}
      [:span day-of-week-abbr]
      [:br]
      [:span (jt/format "dd/MM" date)]]))
@@ -101,7 +109,7 @@
        [:tr
         [:th [:abbr {:title "Timeslot Number"}
               "Slot No."]]
-        (-timetable-date-heads {:dates dates})]
+        (-timetable-date-heads {:weekdays dates})]
        (-timetable-slot-rows {:timeslots timeslots, :dates-count dates-count})])))
 
 ;endregion

@@ -11,7 +11,7 @@ body {
 }
 
 table {
-  font-family: 'Source Sans Pro', sans-serif;;
+  font-family: 'Source Sans Pro', sans-serif;
 }
 
 span#brand-title {
@@ -20,5 +20,3 @@ span#brand-title {
   font-size: 1.5em;
   color: var(--violet-bold);
 }
-
-span.icon-text.is-medium > span {}

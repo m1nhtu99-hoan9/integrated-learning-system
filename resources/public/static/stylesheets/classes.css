@@ -1,0 +1,27 @@
+main {
+  margin-bottom: 1rem;
+}
+
+.content table td {
+  /* overrides bulma defaults */
+  text-align: center;
+  vertical-align: middle;
+}
+
+.content table td:hover {
+  cursor: pointer;
+  background-color: #eeecf1;
+}
+
+.content table th[scope="col"] {
+  text-align: center;
+}
+
+label.label {
+  font-family: 'Source Sans Pro', sans-serif;
+}
+
+.container.is-fluid {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}

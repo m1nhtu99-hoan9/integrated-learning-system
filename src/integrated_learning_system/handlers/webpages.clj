@@ -8,6 +8,7 @@
     [integrated-learning-system.utils.datetime :as dt]
     [java-time.api :as jt]))
 
+
 (defn serve-home-page [_]
   (resp-200 (home-page)))
 

@@ -26,3 +26,9 @@
                   (responses/internal-server-error)
                   (responses/content-type (default-mime-types "html"))))
   ([] (resp-500 nil)))
+
+(defn resp-501
+  ([body-doc] (-> body-doc
+                  (responses/not-implemented)
+                  (responses/content-type (default-mime-types "html"))))
+  ([] (resp-501 nil)))

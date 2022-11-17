@@ -2,7 +2,10 @@
   (:require [clojure.spec.alpha :as s]
             [integrated-learning-system.specs.requests.courses :as s-courses]
             [integrated-learning-system.specs.commons.validation-messages :as vms]
-            [org.apache.commons.lang3.StringUtils :refer [*not-blank?]]))
+            [integrated-learning-system.utils.datetime :as dt]
+            [org.apache.commons.lang3.StringUtils :refer [*not-blank?]]
+            [java-time.api :as jt])
+  (:import [java.time LocalDate DayOfWeek]))
 
 
 (defonce validation-messages
@@ -11,7 +14,11 @@
                                                      ::s-courses/course-code-nonempty])
          {::class-name-nonempty (vms/prop-string-nonempty "className")
           ::class-name-chars    "className can only contain alphabetic, numeric, '_', '.' or '-' characters."
-          ::class-name-length   (vms/prop-string-length-between "className" 3 15)}))
+          ::class-name-length   (vms/prop-string-length-between "className" 3 15)
+          ::start-date "Ill-formed date value."
+          ::end-date "Ill-formed date value."
+          ::date-of-week-num "Invalid weekly schedule planning."
+          ::timeslot-number "Invalid weekly schedule planning."}))
 
 (s/def ::course-code ::s-courses/course-code)
 
