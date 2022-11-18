@@ -20,6 +20,10 @@
   (comment "this fn gonna be re-defined by hugsql."))
 (defn -class-class-periods [db-conn {:keys [class_name]}]
   (comment "this fn gonna be re-defined by hugsql."))
+(defn -class-teacher-by-class-name [db-conn {:keys [class_name]}]
+  (comment "this fn gonna be re-defined by hugsql."))
+(defn -class-students-by-class-name [db-conn {:keys [class_name]}]
+  (comment "this fn gonna be re-defined by hugsql."))
 (defn class-by-id [db-conn {:keys [id]}]
   (comment "this fn gonna be re-defined by hugsql."))
 (hugsql/def-db-fns (path-to-sql "classes"))
@@ -45,6 +49,12 @@
             (select-keys (query-param-keys query-strategy))
             db/transform-column-keys
             (as-> $ ((query-fns query-strategy) db-conn $)))))
+
+(defn class-teacher-by-class-name [db-conn {:keys [class-name]}]
+  (-class-teacher-by-class-name db-conn {:class_name class-name}))
+
+(defn class-students-by-class-name [db-conn {:keys [class-name]}]
+  (-class-students-by-class-name db-conn {:class_name class-name}))
 
 ;region add-class!
 

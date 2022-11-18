@@ -3,9 +3,8 @@
     [com.brunobonacci.mulog :as mulog]
     [integrated-learning-system.db :as db]
     [integrated-learning-system.db.classes :as classes-db]
-    [integrated-learning-system.db.timeslots :as timeslots-db]
     [integrated-learning-system.handlers.commons.api :as api]
-    [integrated-learning-system.specs :refer [spec-validate]]
+    [integrated-learning-system.specs :refer [spec-validate spec-explanation->validation-result]]
     [integrated-learning-system.specs.requests.classes :as s-classes]
     [integrated-learning-system.utils.throwable :refer [exn->map]]
     [integrated-learning-system.utils.datetime :as dt]
@@ -18,17 +17,22 @@
 (defn get-class-periods [{{from-date-txt :from-date, to-date-txt :to-date} :body-params,
                           {:keys [class-name]} :path-params,
                           {:keys [db-conn]} :services,
+                          :keys [coercion-problems]
                           :as req}]
   (try
-    (let [from-date (some-> from-date-txt dt/string->local-date),
-          to-date (some-> to-date-txt dt/string->local-date),
-          class-periods (classes-db/class-periods-of-class db-conn
-                                                           {:class-name class-name
-                                                            :from-date from-date
-                                                            :to-date to-date})]
-      (api/resp-200
-        (for [class-period class-periods]
-          (update class-period :school-date #(jt/format "dd/MM/uuuu" %)))))
+    (cond
+      (some? coercion-problems) (api/resp-401 "Invalid request"
+                                              (spec-explanation->validation-result s-classes/validation-messages coercion-problems)),
+      (nil? db-conn) (api/resp-302 "/api/ping"),
+      :else (let [from-date (some-> from-date-txt dt/string->local-date),
+                  to-date (some-> to-date-txt dt/string->local-date),
+                  class-periods (classes-db/class-periods-of-class db-conn
+                                                                   {:class-name class-name
+                                                                    :from-date from-date
+                                                                    :to-date to-date})]
+              (api/resp-200
+                (for [class-period class-periods]
+                  (update class-period :school-date #(jt/format "dd/MM/uuuu" %))))))
     (catch Exception exn
       (mulog/log ::failed-get-class-periods
                  :exn (exn->map exn (fn [stack] (->> stack (take 8) (into []))))
@@ -36,6 +40,26 @@
       (api/resp-500 (str "Failed to process this request getting class period(s) of '" class-name "'.")
                     nil))))
 
+(defn get-class-members [{:as req
+                          :keys [coercion-problems]
+                          {:keys [db-conn]} :services
+                          {{:keys [class-name]} :path} :parameters}]
+  (try
+    (cond
+      (some? coercion-problems) (api/resp-401 "Invalid request"
+                                  (spec-explanation->validation-result s-classes/validation-messages coercion-problems)),
+      (nil? db-conn) (api/resp-302 "/api/ping"),
+      :else (let [db-query-params {:class-name class-name}
+                  students (classes-db/class-students-by-class-name db-conn db-query-params)
+                  teacher (classes-db/class-teacher-by-class-name db-conn db-query-params)]
+              (api/resp-200 {:class-teacher teacher
+                             :class-students students})))
+    (catch Exception exn
+      (mulog/log ::failed-get-class-members
+                 :exn (exn->map exn (fn [stack] (->> stack (take 8) (into []))))
+                 :req-arg (select-keys req [:body-params :path-params]))
+      (api/resp-500 (str "Failed to process this request getting class member(s) of '" class-name "'.")
+                    nil))))
 
 ;;-- POST handler
 
