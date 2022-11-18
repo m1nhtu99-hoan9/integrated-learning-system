@@ -1,6 +1,7 @@
 (ns integrated-learning-system.handlers.webpages
   (:require
     [integrated-learning-system.db.timeslots :as timeslots-db]
+    [integrated-learning-system.handlers.commons.api :as api]
     [integrated-learning-system.handlers.commons.html :refer [resp-200 resp-400 resp-404]]
     [integrated-learning-system.specs :refer [spec-explanation->validation-result]]
     [integrated-learning-system.specs.requests.timetable :as s-timetable]
@@ -54,6 +55,8 @@
       (if-some [week-value-error (::dt/error week-first-date)]
         (resp-400
           (tmpl/timetable-page {:query-errors {:week week-value-error}}))
-        (-serve-timetable-ok-page db-conn week-first-date)))))
+        (if (nil? db-conn)
+          (api/resp-302 "/api/ping")
+          (-serve-timetable-ok-page db-conn week-first-date))))))
 
 ;endregion

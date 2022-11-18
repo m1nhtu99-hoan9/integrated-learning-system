@@ -147,11 +147,4 @@
               [:span "Reset"]
               [:span.icon.is-small [:i.fas.fa-times]]]]]]]]))))
 
-[:div.field.is-horizontal
- [:div.field-label.is-normal
-  [:label.label "To"]]
- [:div.field-body
-  [:div.field
-   [:p.control
-    [:input.input {:type "email" :placeholder "Recipient email"}]]]]]
 ;endregion

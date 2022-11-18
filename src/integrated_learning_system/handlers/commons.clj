@@ -1,20 +1,19 @@
 (ns integrated-learning-system.handlers.commons
-  (:require [integrated-learning-system.handlers.commons.api :as api]
-            [com.brunobonacci.mulog :as mulog]))
+  (:require [integrated-learning-system.handlers.commons.api :as api]))
 
 (defn- failure->error
   "Map global failure entry into user-friendly error report"
   [[key msg]]
-  {:area key
+  {:area    key
    :message msg})
 
 (defn handle-api-ping-fn [{:as app-cfgmap, :keys [env]}]
   (fn [req]
     (let [global-failures (:failures req)
           payload (if (empty? (:failures req))
-                    {:message "Healthy", :errors []}
-                    {:message "Unhealthy", :errors (map failure->error
-                                                        global-failures)})
+                    {:message "Server is healthy.", :errors []}
+                    {:message "Server is not ready for requests.", :errors (map failure->error
+                                                                                global-failures)})
           debug-payload {:scheme           (:scheme req)
                          :request-body     (:body-params req)
                          :app-config       app-cfgmap
