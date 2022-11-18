@@ -44,10 +44,11 @@
 (defn- spec-explanation->validation-result*
   [defined-messages spec-explanation orig-value]
   (when-some [probs (::s/problems spec-explanation)]
-    ; event logging
-    (mulog/log ::entered--spec-explanation->validation-result
-               :defined-validation-messages defined-messages
-               :spec-explanation spec-explanation)
+    (comment
+      ; event logging
+      (mulog/log ::entered--spec-explanation->validation-result
+                 :defined-validation-messages defined-messages
+                 :spec-explanation spec-explanation))
     ; processing
     (letfn [(reduce-to-valid-probs [validation-probs spec-prob]
               (comment (str "With `spec-prob` resolves to prop 'p' and validation message 'm': "

@@ -35,15 +35,18 @@
 
 (defn add-account-user! [db-conn
                          {:as   account-user
-                          :keys [account-id is-admin]
+                          :keys [account-id is-admin phone-number personal-email date-of-birth first-name last-name]
                           :or   {account-id (UUID/randomUUID)
                                  is-admin   false}}]
   (try
-    (let [record (as-> account-user $
-                       (select-keys $ [:phone-number :personal-email :date-of-birth :first-name :last-name])
-                       (assoc $ :account-id account-id
-                                :is-admin is-admin)
-                       (db/transform-column-keys $)),
+    ;; CAVEAT: `(select-keys map [:personal-email])` would ignore `:personal-email` if it's not a `map` key.
+    (let [record {:account_id     account-id
+                  :phone_number   phone-number    ;; even if `phone-number` is `nil`, hugsql still requires the key to be present
+                  :personal_email personal-email
+                  :date_of_birth  date-of-birth
+                  :first_name     first-name
+                  :last_name      last-name
+                  :is_admin       is-admin},
           added-account-user (-add-account-user! (db/with-snake-kebab-opts db-conn)
                                                  record)]
       {::db/result added-account-user})

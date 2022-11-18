@@ -2,6 +2,7 @@
   (:require
     [clojure.spec.alpha :as s]
     [com.brunobonacci.mulog :as mulog]
+    [org.apache.commons.lang3.StringUtils :refer [*blank?]]
     [integrated-learning-system.db :as db]
     [integrated-learning-system.db.accounts :as accounts-db]
     [integrated-learning-system.db.students :as students-db]
@@ -15,7 +16,7 @@
 
 ;;-- GET handler
 
-(defn get-account-by-username [req]
+(defn get-account-by-username [_]
   (api/resp-501))
 
 ;;-- POST handler
@@ -95,13 +96,17 @@
 
 (defn- -validate-register-account [body-params]
   (try
-    (let [{:keys [invalid-body-errors request]} (-coerce-to-account-add-request body-params)]
+    (let [{{:keys [role username], :as request} :request
+           :keys                                [invalid-body-errors]} (-coerce-to-account-add-request body-params)]
       (if (some? invalid-body-errors)
-        {:non-ok-response (api/resp-401 "Invalid account registration request body."
-                                        invalid-body-errors)}
+        {:non-ok-response (api/resp-401
+                            (str "Invalid account registration request"
+                                 (when-not (*blank? username)
+                                   (str " for username '" username "'"))
+                                 ".")
+                            invalid-body-errors)}
         ; else: check for schema validation errors
-        (let [{:keys [role]} request,
-              {:keys [validation-errors, conformed-payload]} (-validate-account-add-request request)]
+        (let [{:keys [validation-errors, conformed-payload]} (-validate-account-add-request request)]
           {:non-ok-response (some->> validation-errors
                                      (api/resp-422 "Validation errors."))
            :role            role

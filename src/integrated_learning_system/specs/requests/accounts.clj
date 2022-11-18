@@ -6,6 +6,7 @@
             [org.apache.commons.lang3.StringUtils :refer [*equals-ignore-case *not-blank?]])
   (:import (java.time LocalDate)))
 
+
 (defn- string->account-role [string]
   (condp *equals-ignore-case string
     nil :admin
@@ -46,7 +47,7 @@
 (s/def ::password-nonempty #(*not-blank? %))
 (s/def ::password (s/and ::password-nonempty))
 
-(s/def ::role-defined #{:admin :teacher :role})
+(s/def ::role-defined #{:admin :teacher :student})
 (s/def ::role (s/and ::role-defined))
 
 (s/def ::first-name-nonempty #(*not-blank? %))
@@ -71,9 +72,12 @@
 
 ;-- ::account-add-request
 
-(defn body-params->account-add-request [{:as body-params, :keys [role date-of-birth]}]
-  (assoc body-params :role (string->account-role role)
-                     :date-of-birth (some-> date-of-birth dt/string->local-date)))
+(defn body-params->account-add-request [body-params]
+  (as-> body-params $
+        (update $ :role string->account-role)
+        (if (contains? $ :date-of-birth)
+          (update $ :date-of-birth dt/string->local-date)
+          $)))
 
 (s/def ::account-add-request (s/keys :req-un [::role]
                                      :opt-un [::date-of-birth]))

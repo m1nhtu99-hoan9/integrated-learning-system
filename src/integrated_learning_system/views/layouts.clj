@@ -1,4 +1,5 @@
 (ns integrated-learning-system.views.layouts
+  "Shared layout components"
   (:use hiccup.core)
   (:require
     [integrated-learning-system.utils.datetime :as dt]
