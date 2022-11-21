@@ -1,5 +1,6 @@
 (ns integrated-learning-system.db.teachers
   (:require
+    [clojure.spec.alpha :as s]
     [com.brunobonacci.mulog :as mulog]
     [hugsql.core :as hugsql]
     [integrated-learning-system.db :as db]
@@ -11,7 +12,9 @@
 
 (defn all-teachers [db-conn]
   (comment "this fn gonna be redefined by hugsql."))
-(defn teacher-by-username [db-conn {:keys [username]}]
+(defn -teacher-by-username [db-conn {:keys [username]}]
+  (comment "this fn gonna be redefined by hugsql."))
+(defn -teachers-by-teacher-ids [db-conn {:keys [teacher_ids]}]
   (comment "this fn gonna be redefined by hugsql."))
 (hugsql/def-db-fns (path-to-sql "teachers"))
 
@@ -28,3 +31,16 @@
                  :account-id account-id)
       ; rethrows to let next.jdbc handle rollback of transaction, if any
       (throw exn))))
+
+(defn teacher-by-username [db-conn {:keys [username]}]
+  ; the param map might contain more keys than just :username
+ (-teacher-by-username db-conn {:username username}))
+
+(defn teachers-by-teacher-ids [db-conn {:as argmap, :keys [teacher-ids]}]
+  (if (s/valid? (s/coll-of #(instance? UUID %))
+                teacher-ids)
+    (-teachers-by-teacher-ids db-conn {:teacher_ids teacher-ids})
+    (do
+      (mulog/log ::teachers-by-teacher-ids-invalid-args
+                 :args argmap)
+      (throw (IllegalArgumentException. "teacher-ids is not a collection of UUID")))))

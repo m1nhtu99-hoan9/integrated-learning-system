@@ -27,14 +27,9 @@
               :handler h/organise-class-periods}}]]
 
     ["/members"
-     {:get {:name    ::class-members-request
+     {:get {:name    ::class-members-get-request
             :summary "Query class teacher and all student(s)"
-            :handler h/get-class-members}}]
-    ["/teacher"
-     {:post {:name    ::teacher-class-add-request
-             :summary "Assign teacher to class"
-             :handler h/assign-teacher-to-class}}]
-    ["/students"
-     {:post {:name    ::student-class-add-request
-             :summary "Add student to class"
-             :handler h/add-student-to-class}}]]])
+            :handler h/get-class-members},
+      :put {:name    ::class-members-put-request
+            :summary "Manage class teacher and students"
+            :handler h/replace-class-members}}]]])

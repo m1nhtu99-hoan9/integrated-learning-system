@@ -3,7 +3,6 @@
   (:require [clojure.walk :refer [postwalk]]
             [hugsql.adapter]
             [hugsql.core :refer [hugsql-command-fn hugsql-result-fn]]
-            [integrated-learning-system.db :as db]
             [java-time.api :as jt]))
 
 

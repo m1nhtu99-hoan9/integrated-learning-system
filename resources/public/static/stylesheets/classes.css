@@ -21,7 +21,25 @@ label.label {
   font-family: 'Source Sans Pro', sans-serif;
 }
 
+h2.icon-text > .icon {
+  /* overrides bulma defaults of `.icon` */
+  display: inline-table !important;
+}
+
 .container.is-fluid {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
+}
+
+select {
+  font-family: 'Source Sans Pro', sans-serif;
+}
+
+option {
+  font-family: 'Source Sans Pro', sans-serif;
+}
+
+progress.progress {
+  /* overrides bulma defaults */
+  border-radius: 0;
 }

@@ -2,9 +2,11 @@
   (:require
     [hiccup.page :refer [html5 include-css include-js]]
     [java-time.api :as jt]
+    [integrated-learning-system.utils.datetime :as dt]
+    [integrated-learning-system.utils.json :refer [->json-string]]
+    [integrated-learning-system.utils.string :refer [utf8-string]]
     [integrated-learning-system.views.commons :as commons]
-    [integrated-learning-system.views.layouts :as layouts]
-    [integrated-learning-system.utils.datetime :as dt])
+    [integrated-learning-system.views.layouts :as layouts])
   (:use [hiccup.core])
   (:import [java.time LocalTime DayOfWeek]))
 
@@ -33,9 +35,9 @@
         :let [end-at (jt/plus start-at (jt/minutes duration-mins)),
               start-at-txt (dt/local-time->string start-at :time/without-seconds),
               end-at-txt (dt/local-time->string end-at :time/without-seconds),
-              row-metadata {:data-slot-no number
+              row-metadata {:data-slot-no  number
                             :data-start-at start-at-txt
-                            :data-end-at end-at-txt}]]
+                            :data-end-at   end-at-txt}]]
     [:tr row-metadata
      [:th {:scope "row"}
       [:span (str "Slot " number)]
@@ -59,9 +61,9 @@
     [:div.field-body
      [:div.field
       [:p.control
-       [:input {:id "start-date-txt"
-                :name "class-start-date"
-                :class "input" :type "text"
+       [:input {:id          "start-date-txt"
+                :name        "class-start-date"
+                :class       "input" :type "text"
                 :placeholder "From which date?"}]]]]]
    [:div.column.field.is-horizontal
     [:div.field-label.is-normal
@@ -69,9 +71,9 @@
     [:div.field-body
      [:div.field
       [:p.control
-       [:input {:id "end-date-txt"
-                :name "class-finish-date"
-                :class "input" :type "text"
+       [:input {:id          "end-date-txt"
+                :name        "class-finish-date"
+                :class       "input" :type "text"
                 :placeholder "To which date (inclusively)?"}]]]]]])
 
 (defn- -schedule-selection-tables [{:keys [timeslots]}]
@@ -121,7 +123,7 @@
         (some? path-errors) (layouts/param-errors-banner path-errors),
         (pos-int? class-periods-num) (-class-periods-existed-banner opts),
         :else
-        [:main {:data-class-name (h class-name)
+        [:main {:data-class-name  (h class-name)
                 :data-post-v1-uri (str "/api/v1/classes/" (h class-name) "/periods/batch")}
          [:section.hero.is-info {:id "hero-banner"}
           [:div.hero-body
@@ -138,13 +140,50 @@
            [:div.level-right
             [:p.level-item
              [:button.is-primary {:class "button"
-                                  :id "submit-btn"}
+                                  :id    "submit-btn"}
               [:span.icon.is-small [:i.fas.fa-check]]
               [:span [:strong "Submit"]]]]
             [:p.level-item
              [:button.is-danger.is-outlined {:class "button"
-                                             :id "reset-btn"}
+                                             :id    "reset-btn"}
               [:span "Reset"]
               [:span.icon.is-small [:i.fas.fa-times]]]]]]]]))))
 
 ;endregion
+
+(defn manage-class-members [{:as opts, :keys [class-name path-errors]}]
+  (html5
+    {:lang "en"}
+    (commons/head
+      {:title (if (nil? class-name)
+                "Manage class members"
+                (str "Class " (h class-name) ": Manage class members"))}
+      (comment
+        ; unbundled modules imported only when debugging
+        [:script {:type "importmap"}
+         (->json-string {:imports {"preact" "https://cdn.jsdelivr.net/npm/preact@10.11.3"}})])
+      (include-css
+        "https://cdn.jsdelivr.net/npm/@creativebulma/bulma-tagsinput@1.0.3/dist/css/bulma-tagsinput.min.css")
+      (include-js
+        "https://cdn.jsdelivr.net/npm/@creativebulma/bulma-tagsinput@1.0.3/dist/js/bulma-tagsinput.min.js"
+        "https://cdn.jsdelivr.net/npm/ramda@0.28.0/dist/ramda.min.js"
+        "https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.js"
+        "https://cdn.jsdelivr.net/npm/preact@10.11.3/dist/preact.min.js"
+        "https://cdn.jsdelivr.net/npm/preact@10.11.3/hooks/dist/hooks.umd.js")
+      (include-css "/static/stylesheets/classes.css")
+      (include-js
+        "/static/scripts/layouts.js"
+        "/static/scripts/classes/organise_class_members.js"))
+    (commons/body
+      {:navbar-props nil}
+      (cond
+        (some? path-errors) (layouts/param-errors-banner path-errors),
+        :else
+        [:main {:data-class-name (h class-name)}
+         [:section.hero.is-info {:id "hero-banner"}
+          [:div.hero-body
+           [:p.title "Manage class members"]
+           [:p.subtitle (str "Class " (h class-name))]
+           [:p.dynamic]]]
+         [:div#dynamic-form-group
+          [:progress.progress.is-medium.is-info {:max "100"}]]]))))

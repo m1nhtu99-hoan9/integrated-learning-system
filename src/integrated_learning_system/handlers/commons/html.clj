@@ -6,7 +6,7 @@
 (defn resp-200
   ([body-doc] (-> body-doc
                   (responses/ok)
-                  (responses/content-type (default-mime-types "html"))))
+                  (responses/content-type "text/html; charset=UTF-8")))
   ([] (resp-200 nil)))
 
 (defn resp-400

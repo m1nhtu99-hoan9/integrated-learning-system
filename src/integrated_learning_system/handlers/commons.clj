@@ -23,3 +23,9 @@
 
 (defn redirect-to-page-404 []
   (api/resp-302 "/404"))
+
+
+(defn user-display-names [{:keys [first-name last-name username]}]
+  (let [full-name (str first-name " " last-name),
+        display-name (str full-name " (" username ")")]
+    {:full-name full-name, :display-name display-name}))
