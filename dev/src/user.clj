@@ -49,6 +49,8 @@
     (let [app-cfg (:server/app ig-state/system)]
       (routing/create-router app-cfg)))
   (reitit/match-by-path router "/api/v1/accounts/admin")
+  ;  inspect route definitions resolved by reitit
+  (reitit/routes router)
 
   ; smoke testing: routing-handler
   (def routing-handler
@@ -59,4 +61,4 @@
   ;; No implementation of method: :write-body-to-stream of protocol: #'ring.core.protocols/StreamableResponseBody found
   ;; for class: clojure.lang.PersistentArrayMap
   (routing-handler {:request-method :get
-                    :uri            "/ping"}))
+                    :uri            "/"}))

@@ -17,6 +17,8 @@
     [reitit.http.interceptors.parameters :refer [parameters-interceptor]]
     [reitit.pedestal]
     [reitit.ring :as ring]
+    [reitit.ring.spec :as rrs]
+    [reitit.spec :as rs]
     [reitit.swagger :refer [create-swagger-handler swagger-feature]]
     [reitit.swagger-ui :refer [create-swagger-ui-handler]]))
 
@@ -46,12 +48,14 @@
                       (safe-coerce-request-interceptor)
                       ;; for handling HTTP multipart request
                       (multipart-interceptor)]]
-    {:exception reitit-pretty/exception
-     :data      {:coercion     coercion-instance
-                 :muuntaja     muuntaja-instance
-                 :interceptors (replace {:exception-interceptor (when (= env :prod)
-                                                                  (exception-interceptor))}
-                                        interceptors)}}))
+    {:exception   reitit-pretty/exception
+     :validate    rrs/validate
+     ::rs/explain expound.alpha/expound-str
+     :data        {:coercion     coercion-instance
+                   :muuntaja     muuntaja-instance
+                   :interceptors (replace {:exception-interceptor (when (= env :prod)
+                                                                    (exception-interceptor))}
+                                          interceptors)}}))
 
 
 (defn- create-swagger-docs [{:keys [name version]}]

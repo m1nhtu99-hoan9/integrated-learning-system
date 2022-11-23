@@ -1,0 +1,4 @@
+.content table th[scope='row'] {
+    /* overrides Bulma defaults */
+    text-align: center;
+}

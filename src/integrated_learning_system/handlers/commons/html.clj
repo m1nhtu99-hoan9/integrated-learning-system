@@ -21,6 +21,12 @@
                   (responses/content-type (default-mime-types "html"))))
   ([] (resp-404 nil)))
 
+(defn resp-422
+  ([body-doc] (-> body-doc
+                  (responses/unprocessable-entity)
+                  (responses/content-type (default-mime-types "html"))))
+  ([] (resp-422 nil)))
+
 (defn resp-500
   ([body-doc] (-> body-doc
                   (responses/internal-server-error)

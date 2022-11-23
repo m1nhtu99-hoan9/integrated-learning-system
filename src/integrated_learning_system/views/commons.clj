@@ -21,6 +21,7 @@
      "https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"
      "https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"
      "https://cdn.jsdelivr.net/npm/docsearch.js@2/dist/cdn/docsearch.min.css")
+   ; CAVEAT: `include-css` not able to understand the link to Google Fonts stylesheet document
    [:link {:rel "stylesheet" :href gg-font-stylesheet-url}]
    (include-css "/static/stylesheets/commons.css")])
 

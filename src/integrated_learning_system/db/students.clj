@@ -7,11 +7,16 @@
     [integrated-learning-system.db.sql.commons :refer [path-to-sql]]
     [integrated-learning-system.utils.throwable :refer [exn->map]]
     [next.jdbc.sql :as sql])
-  (:import [java.util UUID]))
+  (:import [java.util UUID]
+           [java.time LocalDate LocalDateTime]))
 
 
 (defn all-students [db-conn]
   (comment "this fn gonna be redefined by hugsql."))
+(defn student-by-username [db-conn {:keys [username]}]
+  (comment "this fn gonna be re-defined by hugsql."))
+(defn -student-timetable-by-student-id [db-conn {:keys [student_id from_date to_date]}]
+  (comment "this fn gonna be re-defined by hugsql."))
 (defn -students-by-usernames [db-conn {:keys [usernames]}]
   (comment "this fn gonna be redefined by hugsql."))
 (defn -students-by-student-ids [db-conn {:keys [student_ids]}]
@@ -41,7 +46,6 @@
                  :args argmap)
       (throw (IllegalArgumentException. "usernames is not a string collection.")))))
 
-
 (defn students-by-student-ids [db-conn {:as argmap, :keys [student-ids]}]
   (if (s/valid? (s/coll-of #(instance? UUID %))
                 student-ids)
@@ -50,3 +54,10 @@
       (mulog/log ::students-by-student-ids-invalid-args
                  :args argmap)
       (throw (IllegalArgumentException. "student-ids is not a collection of UUID.")))))
+
+(defn student-timetable-by-student-id [db-conn {:keys [student-id, ^LocalDate from-date, ^LocalDate to-date]}]
+  (for [result (-student-timetable-by-student-id db-conn {:student_id student-id
+                                                          :from_date from-date
+                                                          :to_date to-date})]
+    (update result :school-date (fn [^LocalDateTime v]
+                                  (some-> v (.toLocalDate))))))

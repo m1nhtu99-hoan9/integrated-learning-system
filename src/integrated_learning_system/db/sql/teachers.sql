@@ -28,4 +28,21 @@ SELECT teacher.id AS teacher_id,
 FROM teacher
          INNER JOIN account a on a.id = teacher.account_id
          INNER JOIN account_user au on a.id = au.account_id
-WHERE teacher.id IN (:v * :teacher_ids);
+     -- https://www.hugsql.org/hugsql-in-detail/parameter-types/sql-value-list-parameters
+WHERE teacher.id IN (:v*:teacher_ids);
+
+-- :name -teacher-timetable-by-teacher-id :? :*
+SELECT t.number    AS timeslot_number
+     , cp.school_date
+     , c.class_name
+     , course.code AS course_code
+     , course.course_name
+FROM teacher
+         INNER JOIN teacher_class sc ON teacher.id = sc.teacher_id
+         INNER JOIN class c ON sc.class_id = c.id
+         INNER JOIN course ON c.course_id = course.id
+         INNER JOIN class_period cp ON c.id = cp.class_id
+         INNER JOIN timeslot t ON cp.timeslot_id = t.id
+WHERE teacher.id = :teacher_id
+  AND cp.school_date BETWEEN :from_date AND :to_date
+ORDER BY t.number, cp.school_date;

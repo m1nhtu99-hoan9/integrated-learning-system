@@ -54,4 +54,4 @@
     (mapv #(add-admin! db-conn %) admins)))
 
 (defn seed-timeslots! [db-conn timeslots]
-  (run! #(add-timeslot! db-conn %) timeslots))
+  (mapv #(add-timeslot! db-conn %) timeslots))

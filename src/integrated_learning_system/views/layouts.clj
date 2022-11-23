@@ -1,10 +1,7 @@
 (ns integrated-learning-system.views.layouts
   "Shared layout components"
-  (:use hiccup.core)
-  (:require
-    [integrated-learning-system.utils.datetime :as dt]
-    [java-time.api :as jt])
-  (:import [java.time LocalDate LocalTime]))
+  (:use [hiccup.core]))
+
 
 ;region navbar
 
@@ -48,7 +45,8 @@
 
 ;region banners
 
-(defn errors-banner [{:keys [title errors]}]
+(defn errors-banner [{:keys [title errors]
+                      :or {errors []}}]
   (html
     [:section.hero.is-danger.is-medium
      [:div.hero-body
@@ -66,51 +64,7 @@
                   [:li error-message])]])]]]]))
 
 (defn param-errors-banner [{:as param-errors}]
-  (errors-banner {:title "URL contains invalid parameters:"
+  (errors-banner {:title "URL contains invalid parameters"
                   :errors param-errors}))
-
-;endregion
-
-;region timetable-table
-
-(defn- -timetable-date-heads [{:keys [weekdays]}]
-  (for [date weekdays
-        :let [day-of-week-num (jt/as date :day-of-week),
-              day-of-week-abbr (dt/day-of-week-num->string day-of-week-num {:style :text-style/short}),
-              day-of-week-full (dt/day-of-week-num->string day-of-week-num {:style :text-style/full})]]
-    [:th {:data-day-of-week day-of-week-full
-          :data-date        (jt/format "dd/MM/uuuu" date)
-          :scope            "col"
-          :style            "text-align: center;"}
-     [:span day-of-week-abbr]
-     [:br]
-     [:span (jt/format "dd/MM" date)]]))
-
-(defn- -timetable-slot-rows [{:keys [timeslots dates-count]}]
-  (for [{:keys [^Integer number, ^LocalTime start-at, ^Integer duration-mins]} timeslots
-        :let [end-at (jt/plus start-at (jt/minutes duration-mins)),
-              start-at-txt (dt/local-time->string start-at :time/without-seconds),
-              end-at-txt (dt/local-time->string end-at :time/without-seconds)]]
-    [:tr {:data-slot-no number
-          :data-start-at start-at-txt
-          :data-end-at end-at-txt}
-     [:th {:scope "row"}
-      [:span (str "Slot " number)]
-      [:br]
-      [:span (str start-at-txt " - " end-at-txt)]]
-     (repeat dates-count [:td])]))
-
-(defn timetable-table [{:keys [^LocalDate from-date
-                               ^LocalDate to-date
-                               timeslots]}]
-  (let [dates (into [] (dt/date-range from-date to-date)),
-        dates-count (count dates)]
-    (html
-      [:table.is-fullwidth.is-hoverable {:class "table"}
-       [:tr
-        [:th [:abbr {:title "Timeslot Number"}
-              "Slot No."]]
-        (-timetable-date-heads {:weekdays dates})]
-       (-timetable-slot-rows {:timeslots timeslots, :dates-count dates-count})])))
 
 ;endregion

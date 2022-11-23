@@ -1,7 +1,10 @@
 (ns integrated-learning-system.routing.api.classes
   (:require
     [integrated-learning-system.specs.requests.classes :as s-classes]
-    [integrated-learning-system.handlers.classes :as h]))
+    [integrated-learning-system.handlers.classes :as h]
+    [integrated-learning-system.handlers.classes.periods :as hp]
+    [integrated-learning-system.handlers.classes.members :as hm]))
+
 
 (defn v1-classes-routes []
   ["/classes"
@@ -14,22 +17,18 @@
    ["/:class-name"
     {:parameters {:path {:class-name ::s-classes/class-name}}}
     ["/periods"
-     ["/actions"
-      ["/move" {:post {:name    ::class-period-move-request
-                       :summary "Move a class period to different timeslots"
-                       :handler h/move-class-period}}]]
-     ["/" {:get {:name    ::class-periods-get-request
-                 :summary "Query class periods"
-                 :handler h/get-class-periods}}]
      ["/batch"
       {:post {:name    ::class-periods-add-request
               :summary "Organise schedule for class"
-              :handler h/organise-class-periods}}]]
+              :handler hp/organise-class-periods}}]
+     ["/" {:get {:name    ::class-periods-get-request
+                 :summary "Query class periods"
+                 :handler hp/get-class-periods}}]]
 
     ["/members"
      {:get {:name    ::class-members-get-request
             :summary "Query class teacher and all student(s)"
-            :handler h/get-class-members},
+            :handler hm/get-class-members},
       :put {:name    ::class-members-put-request
             :summary "Manage class teacher and students"
-            :handler h/replace-class-members}}]]])
+            :handler hm/replace-class-members}}]]])

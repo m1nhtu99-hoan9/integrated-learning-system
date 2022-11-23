@@ -8,13 +8,18 @@
   ([] (resp-200 nil)))
 
 (defn resp-201
+  "Return HTTP response status 201 with 'Location' header of value `uri`.
+  If `payload` is not a `IPersistentMap`, the response body will be `payload` as it is;
+  otherwise, `uri` would be also added as a body field."
   ([uri payload]
    (let [actual-uri (if (*blank? uri)
                       nil
                       uri)]
      {:status 201,
       :headers {"Location" actual-uri},
-      :body (assoc payload :uri actual-uri)}))
+      :body (if (map? payload)
+              (assoc payload :uri actual-uri)
+              payload)}))
   ([uri] (resp-201 uri nil))
   ([] (resp-201 nil)))
 

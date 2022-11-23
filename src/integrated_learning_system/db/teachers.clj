@@ -7,15 +7,19 @@
     [integrated-learning-system.db.sql.commons :refer [path-to-sql]]
     [integrated-learning-system.utils.throwable :refer [exn->map]]
     [next.jdbc.sql :as sql])
-  (:import [java.util UUID]))
+  (:import [java.util UUID]
+           [java.time LocalDate LocalDateTime]))
 
 
 (defn all-teachers [db-conn]
   (comment "this fn gonna be redefined by hugsql."))
+(defn -teacher-timetable-by-teacher-id [db-conn {:keys [teacher_id from_date to_date]}]
+  (comment "this fn gonna be re-defined by hugsql."))
 (defn -teacher-by-username [db-conn {:keys [username]}]
   (comment "this fn gonna be redefined by hugsql."))
 (defn -teachers-by-teacher-ids [db-conn {:keys [teacher_ids]}]
   (comment "this fn gonna be redefined by hugsql."))
+
 (hugsql/def-db-fns (path-to-sql "teachers"))
 
 
@@ -34,7 +38,7 @@
 
 (defn teacher-by-username [db-conn {:keys [username]}]
   ; the param map might contain more keys than just :username
- (-teacher-by-username db-conn {:username username}))
+  (-teacher-by-username db-conn {:username username}))
 
 (defn teachers-by-teacher-ids [db-conn {:as argmap, :keys [teacher-ids]}]
   (if (s/valid? (s/coll-of #(instance? UUID %))
@@ -44,3 +48,11 @@
       (mulog/log ::teachers-by-teacher-ids-invalid-args
                  :args argmap)
       (throw (IllegalArgumentException. "teacher-ids is not a collection of UUID")))))
+
+
+(defn teacher-timetable-by-teacher-id [db-conn {:keys [teacher-id, ^LocalDate from-date, ^LocalDate to-date]}]
+  (for [result (-teacher-timetable-by-teacher-id db-conn {:teacher_id teacher-id
+                                                          :from_date  from-date
+                                                          :to_date    to-date})]
+    (update result :school-date (fn [^LocalDateTime v]
+                                  (some-> v (.toLocalDate))))))

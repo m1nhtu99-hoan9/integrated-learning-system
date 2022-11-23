@@ -38,6 +38,7 @@
                  [metosin/ring-http-response "0.9.3"]
                  [com.brunobonacci/mulog "0.9.0"]
                  [crypto-password "0.3.0"]
+                 [expound "0.9.0"]
                  ;; transient dependencies required by `lein-nsort`
                  [org.clojure/tools.namespace "1.3.0"]
                  [com.rpl/specter "1.1.3"]
