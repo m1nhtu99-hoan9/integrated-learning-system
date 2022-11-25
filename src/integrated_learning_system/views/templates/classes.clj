@@ -11,6 +11,26 @@
   (:import [java.time LocalTime DayOfWeek]))
 
 
+(defonce
+  ^:private common-vendor-js-scripts
+  ["https://cdn.jsdelivr.net/npm/@creativebulma/bulma-tagsinput@1.0.3/dist/js/bulma-tagsinput.min.js"
+   "https://cdn.jsdelivr.net/npm/ramda@0.28.0/dist/ramda.min.js"
+   "https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.js"
+   "https://cdn.jsdelivr.net/npm/preact@10.11.3/dist/preact.min.js"
+   "https://cdn.jsdelivr.net/npm/preact@10.11.3/hooks/dist/hooks.umd.js"])
+
+(defonce
+  ^:private vendor-js-scripts
+  {"vanillajs-datepicker" "https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/js/datepicker-full.min.js"
+   "slugify"              "https://cdn.jsdelivr.net/npm/slugify@1.6.5/slugify.min.js"})
+
+(defonce
+  ^:private vendor-stylesheets
+  {"bulma-checkbox"       "https://cdn.jsdelivr.net/npm/bulma-checkbox@1.2.1/css/main.min.css"
+   "bulma-radio"          "https://cdn.jsdelivr.net/npm/bulma-radio@1.2.0/css/main.min.css"
+   "bulma-helpers"        "https://cdn.jsdelivr.net/npm/bulma-helpers@0.3.8/css/bulma-helpers.min.css"
+   "vanillajs-datepicker" "https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/css/datepicker.min.css"})
+
 ;region organise-weekly-schedule
 
 (defn- -describe-day-of-week [^DayOfWeek weekday]
@@ -106,13 +126,11 @@
                 "Organise weekly schedule"
                 (str "Class " (h class-name) ": Organise weekly schedule"))}
       (include-css
-        "https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/css/datepicker.min.css"
-        "https://cdn.jsdelivr.net/npm/bulma-checkbox@1.2.1/css/main.min.css")
+        (vendor-stylesheets "vanillajs-datepicker")
+        (vendor-stylesheets "bulma-checkbox"))
       (include-js
-        "https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/js/datepicker-full.min.js"
-        "https://cdn.jsdelivr.net/npm/ramda@0.28.0/dist/ramda.min.js"
-        "https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.js"
-        "https://cdn.jsdelivr.net/npm/preact@10.11.3/dist/preact.min.js")
+        (vendor-js-scripts "vanillajs-datepicker"))
+      (apply include-js common-vendor-js-scripts)
       (include-css "/static/stylesheets/classes.css")
       (include-js
         "/static/scripts/layouts.js"
@@ -164,12 +182,7 @@
          (->json-string {:imports {"preact" "https://cdn.jsdelivr.net/npm/preact@10.11.3"}})])
       (include-css
         "https://cdn.jsdelivr.net/npm/@creativebulma/bulma-tagsinput@1.0.3/dist/css/bulma-tagsinput.min.css")
-      (include-js
-        "https://cdn.jsdelivr.net/npm/@creativebulma/bulma-tagsinput@1.0.3/dist/js/bulma-tagsinput.min.js"
-        "https://cdn.jsdelivr.net/npm/ramda@0.28.0/dist/ramda.min.js"
-        "https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.js"
-        "https://cdn.jsdelivr.net/npm/preact@10.11.3/dist/preact.min.js"
-        "https://cdn.jsdelivr.net/npm/preact@10.11.3/hooks/dist/hooks.umd.js")
+      (apply include-js common-vendor-js-scripts)
       (include-css "/static/stylesheets/classes.css")
       (include-js
         "/static/scripts/layouts.js"
@@ -184,6 +197,39 @@
           [:div.hero-body
            [:p.title "Manage class members"]
            [:p.subtitle (str "Class " (h class-name))]
+           [:p.dynamic]]]
+         [:div#dynamic-form-group
+          [:progress.progress.is-medium.is-info {:max "100"}]]]))))
+
+
+(defn add-homework [{:keys                                            [path-errors general-error-message], :as props,
+                     {:keys [class-name school-date timeslot-number]} :path-params}]
+  (html5
+    {:lang "en"}
+    (commons/head
+      {:title "Add homework"}
+      (include-css
+        (vendor-stylesheets "bulma-radio")
+        (vendor-stylesheets "bulma-helpers"))
+      (apply include-js common-vendor-js-scripts)
+      (include-js (vendor-js-scripts "slugify"))
+      (include-css "/static/stylesheets/homework.css")
+      (include-js
+        "/static/scripts/layouts.js"
+        "/static/scripts/classes/homework/add_homework.js"))
+    (commons/body
+      {:navbar-props nil}
+      (cond
+        (some? path-errors) (layouts/param-errors-banner path-errors),
+        (some? general-error-message) (layouts/errors-banner {:title general-error-message})
+        :else
+        [:main {:data-class-name      (h class-name)
+                :data-school-date     (jt/format "uuuu-MM-dd" school-date)
+                :data-timeslot-number timeslot-number}
+         [:section.hero.is-info {:id "hero-banner"}
+          [:div.hero-body
+           [:p.title (str (h class-name) " Homework")]
+           [:p.subtitle (str (jt/format "dd/MM/uuuu" school-date) " Slot " timeslot-number)]
            [:p.dynamic]]]
          [:div#dynamic-form-group
           [:progress.progress.is-medium.is-info {:max "100"}]]]))))

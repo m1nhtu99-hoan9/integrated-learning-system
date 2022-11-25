@@ -5,7 +5,7 @@
   (:import [clojure.lang Keyword]
            [java.time LocalDate LocalTime DateTimeException DayOfWeek]
            [java.time.format DateTimeFormatterBuilder TextStyle]
-           [java.util Locale]))
+           [java.util Locale Date]))
 
 ;region local-date-time<->string
 
@@ -86,6 +86,18 @@
          {::error exn-message}))))
   ([local-time]
    (local-time->string local-time :time/extended)))
+
+;endregion
+
+;region local-date-time<->date-time
+
+(defn ->local-date [date]
+  (condp instance? date
+    String (string->local-date date),
+    Date (-> date (.getTime) (java.sql.Date.) (jt/local-date)),
+    java.sql.Date (jt/local-date date),
+    LocalDate date,
+    (throw (IllegalArgumentException. (str "date is of unprocessable type " (type date))))))
 
 ;endregion
 

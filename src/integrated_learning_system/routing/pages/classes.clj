@@ -8,11 +8,17 @@
 (def classes-routes
   ["/classes"
    ["/{class-name}"
-    (let [path-params-spec {:path (s/keys :opt-un [::s-classes/class-name])}]
+    {:parameters {:path (s/keys :req-un [::s-classes/class-name]
+                                :opt-un [::s-classes/date ::s-classes/slot-no])}}
+    ["/_actions"
+     {:conflicting true}
+     ["/manage-class-members" {:name    ::class-members-add-or-update
+                               :handler h/serve-manage-class-members-page}]
+     ["/organise-weekly-schedule" {:name    ::class-periods-add-request
+                                   :handler h/serve-organise-schedule-page}]]
+    ["/{date}/{slot-no}"
+     {:conflicting true}
+     ["/homework"
       ["/_actions"
-       ["/manage-class-members" {:name       ::class-members-add-or-update
-                                 :parameters path-params-spec
-                                 :handler    h/serve-manage-class-members-page}]
-       ["/organise-weekly-schedule" {:name       ::class-periods-add-request
-                                     :parameters path-params-spec
-                                     :handler    h/serve-organise-schedule-page}]])]])
+       ["/add" {:name    ::homework-add-request
+                :handler h/serve-manage-homework-page}]]]]]])

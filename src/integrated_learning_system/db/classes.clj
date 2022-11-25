@@ -1,12 +1,14 @@
 (ns integrated-learning-system.db.classes
-  (:require [com.brunobonacci.mulog :as mulog]
-            [hugsql.core :as hugsql]
-            [integrated-learning-system.db :as db]
-            [integrated-learning-system.db.courses :as courses-db]
-            [integrated-learning-system.db.timeslots :as timeslots-db]
-            [integrated-learning-system.db.sql.commons :refer [path-to-sql]]
-            [integrated-learning-system.utils.throwable :refer [exn->map]]
-            [next.jdbc.sql :as sql])
+  (:require
+    [com.brunobonacci.mulog :as mulog]
+    [hugsql.core :as hugsql]
+    [integrated-learning-system.db :as db]
+    [integrated-learning-system.db.courses :as courses-db]
+    [integrated-learning-system.db.sql.commons :refer [path-to-sql]]
+    [integrated-learning-system.db.timeslots :as timeslots-db]
+    [integrated-learning-system.utils.datetime :as dt]
+    [integrated-learning-system.utils.throwable :refer [exn->map]]
+    [next.jdbc.sql :as sql])
   (:import (java.util UUID)))
 
 
@@ -17,6 +19,8 @@
 (defn -count-class-periods [db-conn {:keys [class_id]}]
   (comment "this fn gonna be re-defined by hugsql."))
 (defn -class-class-periods-within-range [db-conn {:keys [class_name from_date to_date]}]
+  (comment "this fn gonna be re-defined by hugsql."))
+(defn -class-class-period-at-date-by-class-id [db-conn {:keys [class_id date timeslot_number]}]
   (comment "this fn gonna be re-defined by hugsql."))
 (defn -class-class-periods [db-conn {:keys [class_name]}]
   (comment "this fn gonna be re-defined by hugsql."))
@@ -41,14 +45,21 @@
   (let [query-strategy (if (or (nil? from-date) (nil? to-date))
                          :all
                          :range),
-        query-fns {:all -class-class-periods
+        query-fns {:all   -class-class-periods
                    :range -class-class-periods-within-range},
-        query-param-keys {:all [:class-name]
+        query-param-keys {:all   [:class-name]
                           :range [:to-date :from-date :class-name]}]
     (some-> params
             (select-keys (query-param-keys query-strategy))
             db/transform-column-keys
             (as-> $ ((query-fns query-strategy) db-conn $)))))
+
+(defn class-class-period-at-date-by-class-id [db-conn {:keys [class-id date timeslot-number]}]
+  (let [school-date (dt/->local-date date)]
+    (-class-class-period-at-date-by-class-id db-conn
+                                             {:class_id class-id
+                                              :date school-date
+                                              :timeslot_number timeslot-number})))
 
 (defn class-teacher-by-class-name [db-conn {:keys [class-name]}]
   (-class-teacher-by-class-name db-conn {:class_name class-name}))
@@ -79,13 +90,18 @@
       (throw exn))))
 
 (defn add-class! [db-conn
-                  {:as class, :keys [course-code]}]
+                  {:as class, :keys [course-code class-name]}]
   (try
     (if-some [{course-id :id} (courses-db/course-by-code db-conn
                                                          {:code course-code})]
-      (-add-class-record! db-conn course-id class)
-      ; else:
-      {::db/error {:course-code (str "No courses of code '" course-code "' found.")}})
+      (if-some [duplicate (class-by-class-name db-conn class)]
+        (do
+          (mulog/log ::add-class!-found-duplicate
+                     :duplicate duplicate)
+          {::db/error {:class-name [(str "Class name '" class-name "' is already used.")]}})
+        ; else: ok to process
+        (-add-class-record! db-conn course-id class))
+      {::db/error {:course-code [(str "No courses of code '" course-code "' found.")]}})
 
     (catch Exception exn
       (mulog/log ::failed-add-class!

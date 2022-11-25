@@ -1,0 +1,51 @@
+main {
+    margin-bottom: 1rem;
+}
+
+.content table td {
+    /* overrides bulma defaults */
+    vertical-align: middle;
+}
+.content table td.question-answer-option {
+    text-align: right;
+    width: 10%;
+}
+.content table td.question-answer-content {
+    text-align: left;
+    width: 80%;
+}
+.content table td.question-answer-actions {
+    display: inline-flex;
+    align-items: center;
+    width: 10%;
+}
+
+label.label {
+    font-family: 'Source Sans Pro', sans-serif;
+}
+label.question-option-radio {
+    vertical-align: text-bottom;
+}
+
+h2.icon-text > .icon {
+    /* overrides bulma defaults of `.icon` */
+    display: inline-table !important;
+}
+
+.container.is-fluid {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+select {
+    font-family: 'Source Sans Pro', sans-serif;
+}
+
+option {
+    font-family: 'Source Sans Pro', sans-serif;
+}
+
+progress.progress {
+    /* overrides bulma defaults */
+    border-radius: 0;
+}

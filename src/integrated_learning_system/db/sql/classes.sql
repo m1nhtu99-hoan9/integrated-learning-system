@@ -11,6 +11,7 @@ WHERE class.id = :id;
 
 -- :name -class-by-class-name :? :1
 SELECT class.id           AS class_id
+     , course.id          AS course_id
      , class_name
      , course_name
      , course.code        AS course_code
@@ -70,6 +71,14 @@ FROM class_period
 WHERE class.class_name = :class_name
   AND school_date BETWEEN :from_date::DATE AND :to_date::DATE
 ORDER BY school_date, timeslot_number;
+
+-- :name -class-class-period-at-date-by-class-id :? :1
+SELECT class_period.id AS class_period_id
+FROM class_period
+         INNER JOIN timeslot ON class_period.timeslot_id = timeslot.id
+WHERE class_id = :class_id
+  AND school_date = :date
+  AND timeslot.number = :timeslot_number;
 
 -- :name -class-class-periods :? :*
 SELECT school_date, timeslot.number AS timeslot_number

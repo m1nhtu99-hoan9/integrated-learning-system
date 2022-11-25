@@ -1,9 +1,11 @@
 (ns integrated-learning-system.routing.api.classes
   (:require
-    [integrated-learning-system.specs.requests.classes :as s-classes]
+    [clojure.spec.alpha :as s]
     [integrated-learning-system.handlers.classes :as h]
+    [integrated-learning-system.handlers.classes.homeworks :as hh]
+    [integrated-learning-system.handlers.classes.members :as hm]
     [integrated-learning-system.handlers.classes.periods :as hp]
-    [integrated-learning-system.handlers.classes.members :as hm]))
+    [integrated-learning-system.specs.requests.classes :as s-classes]))
 
 
 (defn v1-classes-routes []
@@ -15,10 +17,18 @@
             :summary "Create new class for a course"
             :handler h/create-class}}]
    ["/:class-name"
-    {:parameters {:path {:class-name ::s-classes/class-name}}}
+    {:parameters {:path (s/keys :req-un [::s-classes/class-name]
+                                :opt-un [::s-classes/date ::s-classes/slot-no])}}
     ["/periods"
+     ["/{date}/{slot-no}"
+      {:conflicting true}
+      ["/homework"
+       {:post {:name ::homework-add-request
+               :summary "Create homework"
+               :handler hh/create-homework}}]]
      ["/batch"
-      {:post {:name    ::class-periods-add-request
+      {:conflicting true
+       :post {:name    ::class-periods-add-request
               :summary "Organise schedule for class"
               :handler hp/organise-class-periods}}]
      ["/" {:get {:name    ::class-periods-get-request
