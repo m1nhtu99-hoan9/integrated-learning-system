@@ -5,7 +5,7 @@
     [integrated-learning-system.specs.requests.timetable :as s-timetable]))
 
 
-(def timetable-route
+(def timetable-routes
   ["/timetable" {:name       ::timetable-page-request
                  :parameters {:query (s/keys
                                        :req-un [::s-timetable/username]

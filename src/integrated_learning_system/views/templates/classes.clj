@@ -6,30 +6,89 @@
     [integrated-learning-system.utils.json :refer [->json-string]]
     [integrated-learning-system.utils.string :refer [utf8-string]]
     [integrated-learning-system.views.commons :as commons]
-    [integrated-learning-system.views.layouts :as layouts])
+    [integrated-learning-system.views.layouts :as layouts]
+    [integrated-learning-system.views.templates.classes.commons :refer [common-vendor-js-scripts
+                                                                        vendor-js-scripts
+                                                                        vendor-stylesheets]])
   (:use [hiccup.core])
   (:import [java.time LocalTime DayOfWeek]))
 
 
-(defonce
-  ^:private common-vendor-js-scripts
-  ["https://cdn.jsdelivr.net/npm/@creativebulma/bulma-tagsinput@1.0.3/dist/js/bulma-tagsinput.min.js"
-   "https://cdn.jsdelivr.net/npm/ramda@0.28.0/dist/ramda.min.js"
-   "https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.js"
-   "https://cdn.jsdelivr.net/npm/preact@10.11.3/dist/preact.min.js"
-   "https://cdn.jsdelivr.net/npm/preact@10.11.3/hooks/dist/hooks.umd.js"])
+;;region info page templates
 
-(defonce
-  ^:private vendor-js-scripts
-  {"vanillajs-datepicker" "https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/js/datepicker-full.min.js"
-   "slugify"              "https://cdn.jsdelivr.net/npm/slugify@1.6.5/slugify.min.js"})
+(defn all-classes-page [{:keys [classes]}]
+  (html5
+    {:lang "en"}
+    (commons/head
+      {:title "All classes"}
+      (include-css "/static/stylesheets/class-info.css"))
+    (commons/body
+      {:navbar-props nil}
+      [:main
+       [:section.hero.is-link {:id "hero-banner"}
+        [:div.hero-body
+         [:p.title "Classes"]]]
+       [:section.container.is-fluid {:id "classes-content-container"}
+        [:div.content
+         [:p]
+         [:table.is-fullwidth.is-striped {:class "table"}
+          [:tr
+           [:th [:span "Class Name"]]
+           [:th [:span "Teacher Name (Teacher Username)"]]
+           [:th [:span "(Course Code) Course Name"]]
+           [:th [:span "Course Description"]]]
+          (for [class classes,
+                :let [{:keys [class-name course-code course-name course-description],
+                       {teacher-display-name :display-name} :teacher} class]]
+            [:tr
+             [:td [:span
+                   [:a {:href (str "./" class-name "/")} class-name]]]
+             [:td teacher-display-name]
+             [:td (str "(" course-code ") " course-name)]
+             [:td course-description]])]]]])))
 
-(defonce
-  ^:private vendor-stylesheets
-  {"bulma-checkbox"       "https://cdn.jsdelivr.net/npm/bulma-checkbox@1.2.1/css/main.min.css"
-   "bulma-radio"          "https://cdn.jsdelivr.net/npm/bulma-radio@1.2.0/css/main.min.css"
-   "bulma-helpers"        "https://cdn.jsdelivr.net/npm/bulma-helpers@0.3.8/css/bulma-helpers.min.css"
-   "vanillajs-datepicker" "https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.2.0/dist/css/datepicker.min.css"})
+
+(defn class-page [{:keys                  [class-name path-errors general-error-message uris]
+                   {action-uris :actions} :uris}]
+  (html5
+    {:lang "en"}
+    (commons/head
+      {:title (h class-name)}
+      (include-css
+        "/static/stylesheets/classes.css"
+        "/static/stylesheets/class-info.css"))
+    (commons/body
+      {:navbar-props nil}
+      (cond
+        (some? path-errors) (layouts/param-errors-banner path-errors),
+        (some? general-error-message) (layouts/errors-banner {:title general-error-message}),
+        :else
+        [:main {:data-class-name (h class-name)}
+         [:section.hero.is-link {:id "hero-banner"}
+          [:div.hero-body
+           [:p.title (str "Class " (h class-name))]]]
+         [:section.container.is-fluid {:id "content-container"}
+          [:div.content
+           [:h2.icon-text
+            [:span.icon
+             [:i.fas.fa-circle-info]]
+            [:span "See:"]]
+           [:ul
+            [:li [:a {:href (uris :timetable)}
+                  "Class timetable"]]]
+           [:h2.icon-text
+            [:span.icon
+             [:i.fas.fa-pen-to-square]]
+            [:span "Actions:"]]
+           [:ul
+            [:li [:a {:href (action-uris :manage-class-members)}
+                  "Manage class members"]]
+            [:li [:a {:href (action-uris :organise-weekly-schedule)}
+                  "Organise class weekly schedule"]]]]]]))))
+
+;;endregion
+
+;;region action page templates
 
 ;region organise-weekly-schedule
 
@@ -117,8 +176,7 @@
       [:p.subtitle
        [:span (str "Class " (h class-name) " is currently having " class-periods-num " class period(s).")]]]]))
 
-
-(defn organise-schedule [{:as opts, :keys [class-name path-errors class-periods-num]}]
+(defn organise-schedule-page [{:as opts, :keys [class-name path-errors class-periods-num]}]
   (html5
     {:lang "en"}
     (commons/head
@@ -169,7 +227,7 @@
 
 ;endregion
 
-(defn manage-class-members [{:as opts, :keys [class-name path-errors]}]
+(defn manage-class-members-page [{:as opts, :keys [class-name path-errors]}]
   (html5
     {:lang "en"}
     (commons/head
@@ -201,35 +259,5 @@
          [:div#dynamic-form-group
           [:progress.progress.is-medium.is-info {:max "100"}]]]))))
 
+;;endregion
 
-(defn add-homework [{:keys                                            [path-errors general-error-message], :as props,
-                     {:keys [class-name school-date timeslot-number]} :path-params}]
-  (html5
-    {:lang "en"}
-    (commons/head
-      {:title "Add homework"}
-      (include-css
-        (vendor-stylesheets "bulma-radio")
-        (vendor-stylesheets "bulma-helpers"))
-      (apply include-js common-vendor-js-scripts)
-      (include-js (vendor-js-scripts "slugify"))
-      (include-css "/static/stylesheets/homework.css")
-      (include-js
-        "/static/scripts/layouts.js"
-        "/static/scripts/classes/homework/add_homework.js"))
-    (commons/body
-      {:navbar-props nil}
-      (cond
-        (some? path-errors) (layouts/param-errors-banner path-errors),
-        (some? general-error-message) (layouts/errors-banner {:title general-error-message})
-        :else
-        [:main {:data-class-name      (h class-name)
-                :data-school-date     (jt/format "uuuu-MM-dd" school-date)
-                :data-timeslot-number timeslot-number}
-         [:section.hero.is-info {:id "hero-banner"}
-          [:div.hero-body
-           [:p.title (str (h class-name) " Homework")]
-           [:p.subtitle (str (jt/format "dd/MM/uuuu" school-date) " Slot " timeslot-number)]
-           [:p.dynamic]]]
-         [:div#dynamic-form-group
-          [:progress.progress.is-medium.is-info {:max "100"}]]]))))

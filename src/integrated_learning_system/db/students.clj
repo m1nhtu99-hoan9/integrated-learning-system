@@ -11,7 +11,7 @@
            [java.time LocalDate LocalDateTime]))
 
 
-(defn all-students [db-conn]
+(defn -all-students [db-conn]
   (comment "this fn gonna be redefined by hugsql."))
 (defn student-by-username [db-conn {:keys [username]}]
   (comment "this fn gonna be re-defined by hugsql."))
@@ -23,6 +23,11 @@
   (comment "this fn gonna be redefined by hugsql."))
 (hugsql/def-db-fns (path-to-sql "students"))
 
+
+(defn all-students [db-conn]
+  (for [result (-all-students db-conn)]
+    (update result :date-of-birth (fn [^LocalDateTime v]
+                                    (some-> v (.toLocalDate))))))
 
 (defn add-student! [db-conn
                     {:keys [account-id]}]
@@ -40,7 +45,8 @@
 (defn students-by-usernames [db-conn {:as argmap :keys [usernames]}]
   (if (s/valid? (s/coll-of string?)
                 usernames)
-    (-students-by-usernames db-conn {:usernames usernames})
+    (for [result (-students-by-usernames db-conn {:usernames usernames})]
+      (update result :date-of-birth #(some-> % (.toLocalDate))))
     (do
       (mulog/log ::students-by-usernames-invalid-args
                  :args argmap)

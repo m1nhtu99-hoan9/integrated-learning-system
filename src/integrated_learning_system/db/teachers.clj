@@ -11,7 +11,7 @@
            [java.time LocalDate LocalDateTime]))
 
 
-(defn all-teachers [db-conn]
+(defn -all-teachers [db-conn]
   (comment "this fn gonna be redefined by hugsql."))
 (defn -teacher-timetable-by-teacher-id [db-conn {:keys [teacher_id from_date to_date]}]
   (comment "this fn gonna be re-defined by hugsql."))
@@ -22,6 +22,10 @@
 
 (hugsql/def-db-fns (path-to-sql "teachers"))
 
+(defn all-teachers [db-conn]
+  (for [result (-all-teachers db-conn)]
+    (update result :date-of-birth (fn [^LocalDateTime v]
+                                    (some-> v (.toLocalDate))))))
 
 (defn add-teacher! [db-conn
                     {:keys [account-id]}]
@@ -38,7 +42,9 @@
 
 (defn teacher-by-username [db-conn {:keys [username]}]
   ; the param map might contain more keys than just :username
-  (-teacher-by-username db-conn {:username username}))
+  (as-> {:username username} $
+        (-teacher-by-username db-conn $)
+        (update $ :date-of-birth #(some-> % (.toLocalDate)))))
 
 (defn teachers-by-teacher-ids [db-conn {:as argmap, :keys [teacher-ids]}]
   (if (s/valid? (s/coll-of #(instance? UUID %))

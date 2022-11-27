@@ -1,3 +1,21 @@
+-- :name -all-classes :? :*
+SELECT class.id           AS class_id
+     , class_name
+     , au.first_name      AS teacher_first_name
+     , au.last_name       AS teacher_last_name
+     , a.username         AS teacher_username
+     , course_name
+     , course.code        AS course_code
+     , course.description AS course_description
+     , course.status      AS course_status
+FROM class
+         INNER JOIN course ON course.id = class.course_id
+         INNER JOIN teacher_class tc ON class.id = tc.class_id
+         INNER JOIN teacher t ON tc.teacher_id = t.id
+         INNER JOIN account_user au ON t.account_id = au.account_id
+         INNER JOIN account a ON au.account_id = a.id
+;
+
 -- :name class-by-id :? :1
 SELECT class.id           AS class_id
      , class_name

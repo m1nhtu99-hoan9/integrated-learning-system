@@ -43,10 +43,14 @@
      (for [date dates
            :let [timetable-entries (get-in timetable [date timeslot-number])]]
        [:td
-        (for [{:keys [class-name course-code course-name]} timetable-entries]
+        (for [{:keys [class-name course-code course-name]} timetable-entries,
+              :let [entry-uri (str "/classes/" class-name "/" (jt/format "uuuu-MM-dd" date) "/" timeslot-number "/")]]
           [:div
-           [:div.divider.is-left (h class-name)]
-           [:span [:abbr {:title (h course-name)} (str "(" (h course-code) ")")]]])])]))
+           (when-not (nil? class-name)
+             [:div.divider.is-left (h class-name)])
+           [:span [:abbr {:title (h course-name)}
+                   [:a {:href entry-uri}
+                    (str "(" (h course-code) ")")]]]])])]))
 
 (defn- -timetable-table
   "Renders timetable with dates from `from-date` to `to-date` as columns and `timeslots` as rows"
@@ -94,7 +98,7 @@
 
 ;;region pages
 
-(defn timetable-page [{:as page-params, :keys [page-title,
+(defn timetable-page [{:as page-params, :keys [page-title, banner-title,
                                                from-date, to-date, timeslots, timetable,
                                                server-error-message, param-errors, uris]}]
   (html5
@@ -119,7 +123,7 @@
           [:main
            [:section.hero.is-info
             [:div.hero-body
-             [:p.title "Timetable"]
+             [:p.title (or banner-title "Timetable")]
              [:p.subtitle (str from-date-txt "-" to-date-txt)]]]
            [:section {:class "section"}
             (-timetable-navlinks-level page-params)

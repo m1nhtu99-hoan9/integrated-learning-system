@@ -9,9 +9,11 @@
     [integrated-learning-system.utils.datetime :as dt]
     [integrated-learning-system.utils.throwable :refer [exn->map]]
     [next.jdbc.sql :as sql])
-  (:import (java.util UUID)))
+  (:import [java.util UUID]
+           [java.time LocalDateTime]))
 
-
+(defn -all-classes [db-conn]
+  (comment "this fn gonna be re-defined by hugsql."))
 (defn classes-by-course-code [db-conn {:keys [course-code]}]
   (comment "this fn gonna be re-defined by hugsql."))
 (defn -class-by-class-name [db-conn {:keys [class_name]}]
@@ -32,6 +34,16 @@
   (comment "this fn gonna be re-defined by hugsql."))
 (hugsql/def-db-fns (path-to-sql "classes"))
 
+
+(defn all-classes [db-conn]
+  (for [{:as result, :keys [teacher-first-name teacher-last-name teacher-username]} (-all-classes db-conn)]
+    (-> result
+        (assoc :teacher {:first-name teacher-first-name
+                         :last-name teacher-last-name
+                         :username teacher-username})
+        (dissoc :teacher-first-name :teacher-last-name :teacher-username))))
+
+
 (defn class-by-class-name [db-conn {:keys [class-name]}]
   (-class-by-class-name db-conn {:class_name class-name}))
 
@@ -41,24 +53,27 @@
            (-count-class-periods db-conn)
            :count))
 
-(defn class-periods-of-class [db-conn {:as params, :keys [to-date from-date]}]
+(defn class-periods-of-class [db-conn {:keys [class-name to-date from-date]}]
   (let [query-strategy (if (or (nil? from-date) (nil? to-date))
                          :all
                          :range),
         query-fns {:all   -class-class-periods
                    :range -class-class-periods-within-range},
-        query-param-keys {:all   [:class-name]
-                          :range [:to-date :from-date :class-name]}]
-    (some-> params
-            (select-keys (query-param-keys query-strategy))
-            db/transform-column-keys
-            (as-> $ ((query-fns query-strategy) db-conn $)))))
+        query-param-maps {:all   {:class_name class-name}
+                          :range {:class_name class-name
+                                  :to_date    to-date
+                                  :from_date  from-date}},
+        query-fn (get query-fns query-strategy),
+        query-params (get query-param-maps query-strategy)]
+    (for [result (query-fn db-conn query-params)]
+      (update result :school-date (fn [^LocalDateTime v]
+                                    (.toLocalDate v))))))
 
 (defn class-class-period-at-date-by-class-id [db-conn {:keys [class-id date timeslot-number]}]
   (let [school-date (dt/->local-date date)]
     (-class-class-period-at-date-by-class-id db-conn
-                                             {:class_id class-id
-                                              :date school-date
+                                             {:class_id        class-id
+                                              :date            school-date
                                               :timeslot_number timeslot-number})))
 
 (defn class-teacher-by-class-name [db-conn {:keys [class-name]}]

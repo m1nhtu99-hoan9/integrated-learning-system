@@ -1,5 +1,7 @@
 :root {
   --violet-bold: #301454;
+  --success: #48c78e;
+  --danger: #f14668;
 }
 
 body {

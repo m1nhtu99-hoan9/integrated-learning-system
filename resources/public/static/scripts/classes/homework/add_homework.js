@@ -358,7 +358,7 @@ function defineInternalSymbols({ html }, masterData) {
       const options = R.without([option], questionOptions);
       // re-assign option names
       const rearrangedOptions = R.pipe(R.sortBy(R.prop("optionName")), (opts) =>
-        opts.map((opt, i) => R.assoc("optionName", optionsNames[i], opt))
+        opts.map((opt, i) => R.assoc("optionName", optionNames[i], opt))
       )(options);
 
       setQuestionOptions(rearrangedOptions);

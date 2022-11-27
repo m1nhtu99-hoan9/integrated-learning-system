@@ -21,7 +21,9 @@
                      :data-target "navbar-menu-contents"}
    [:span {:aria-hidden "true"}]
    [:span {:aria-hidden "true"}]
+   [:span {:aria-hidden "true"}]
    [:span {:aria-hidden "true"}]])
+
 
 (defn navbar [{:as props}]
   [:nav.navbar.is-fixed-top {:role "navigation" :aria-label "main navigation"}
@@ -31,8 +33,9 @@
     navbar-burger]
    [:div.navbar-menu {:id "navbar-menu-contents"}
     [:div.navbar-start
-     [:a.navbar-item {:href "/timetable"} "Timetable"]
-     [:a.navbar-item "Classes"]
+     [:a.navbar-item {:href "/students"} "Students"]
+     [:a.navbar-item {:href "/teachers"} "Teachers"]
+     [:a.navbar-item {:href "/classes/"} "Classes"]
      div-navbar-more-items]
     [:div.navbar-end
      [:div.navbar-item

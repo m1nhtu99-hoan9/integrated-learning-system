@@ -1,4 +1,14 @@
-.content table th[scope='row'] {
-    /* overrides Bulma defaults */
-    text-align: center;
+.content table th[scope="row"] {
+  /* overrides Bulma defaults */
+  text-align: center;
+}
+
+.content table td {
+  vertical-align: middle;
+}
+
+.content table td .divider {
+  /* overrides bulma-divider defaults */
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
 }

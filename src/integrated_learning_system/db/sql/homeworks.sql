@@ -7,3 +7,8 @@ INSERT
 INTO homework (schoolwork_id, due_class_period_id)
 VALUES ((SELECT id FROM swk FETCH FIRST 1 ROW ONLY), :due_class_period_id)
 RETURNING schoolwork_id;
+
+-- :name -count-homeworks-by-due-class-period-id :? :1
+SELECT COUNT(*)
+FROM homework
+WHERE homework.due_class_period_id = :due_class_period_id;

@@ -1,18 +1,20 @@
 (ns integrated-learning-system.handlers.timetable.commons
   "Shared functions between API & SSR handler for processing/querying timetable."
-  (:require [clojure.algo.generic.functor :refer [fmap]]
-            [com.brunobonacci.mulog :as mulog]
-            [integrated-learning-system.db.students :as students-db]
-            [integrated-learning-system.db.teachers :as teachers-db]
-            [integrated-learning-system.handlers.commons :refer [user-display-names]]
-            [integrated-learning-system.specs :refer [spec-explanation->validation-result]]
-            [integrated-learning-system.specs.requests.timetable :as s-timetable]
-            [integrated-learning-system.utils.datetime :as dt]
-            [integrated-learning-system.utils.throwable :refer [exn->map]]
-            [java-time.api :as jt]))
+  (:require
+    [clojure.algo.generic.functor :refer [fmap]]
+    [com.brunobonacci.mulog :as mulog]
+    [integrated-learning-system.db.students :as students-db]
+    [integrated-learning-system.db.teachers :as teachers-db]
+    [integrated-learning-system.handlers.commons :refer [user-display-names]]
+    [integrated-learning-system.specs :refer [spec-explanation->validation-result]]
+    [integrated-learning-system.specs.requests.timetable :as s-timetable]
+    [integrated-learning-system.utils.datetime :as dt]
+    [integrated-learning-system.utils.throwable :refer [exn->map]]
+    [java-time.api :as jt]))
 
 
-(defn -user-week-ok-timetable [db-conn {:as params, :keys [week-first-date user-role user-display-name teacher-id student-id]}]
+(defn -user-week-ok-timetable [db-conn {:as params, :keys [week-first-date user-role user-display-name user-full-name
+                                                           teacher-id student-id]}]
   (try
     (let [week-and-year-fn (fn [date]
                              (jt/as date :aligned-week-of-year :week-based-year)),
@@ -36,13 +38,14 @@
           timetable-entries (fmap #(group-by :timeslot-number %)
                                   timetable-entries)]
       [200 {:user-display-name user-display-name,
-            :from-date week-first-date
-            :to-date   week-last-date
-            :prev-week {:week prev-week-num
-                        :year prev-week-year},
-            :next-week {:week next-week-num
-                        :year next-week-year},
-            :timetable timetable-entries}])
+            :user-full-name user-full-name,
+            :from-date         week-first-date,
+            :to-date           week-last-date,
+            :prev-week         {:week prev-week-num
+                                :year prev-week-year},
+            :next-week         {:week next-week-num
+                                :year next-week-year},
+            :timetable         timetable-entries}])
 
     (catch Exception exn
       (mulog/log ::failed-user-week-ok-timetable
@@ -63,8 +66,8 @@
       :else
       (let [{:as teacher, :keys [teacher-id]} (teachers-db/teacher-by-username db-conn {:username username}),
             {:as student, :keys [student-id]} (students-db/student-by-username db-conn {:username username}),
-            teacher-display-name (some-> teacher (user-display-names) (:display-name))
-            student-display-name (some-> student (user-display-names) (:display-name)),
+            {teacher-display-name :display-name, teacher-full-name :full-name} (some-> teacher user-display-names),
+            {student-display-name :display-name, student-full-name :full-name} (some-> student user-display-names),
             year-date (if (some? year)
                         (jt/local-date year)
                         (jt/local-date)),
@@ -81,14 +84,17 @@
                                        :username) [(str "No teacher with username '" username "' exists in the system.")]}],
           :otherwise (-user-week-ok-timetable
                        db-conn
-                       {:week-first-date week-first-date
-                        :username        username
-                        :user-role       user-role
-                        :teacher-id      teacher-id
-                        :student-id      student-id
+                       {:week-first-date   week-first-date
+                        :username          username
+                        :user-role         user-role
+                        :teacher-id        teacher-id
+                        :student-id        student-id
                         :user-display-name (case user-role
                                              :teacher teacher-display-name,
-                                             :student student-display-name)}))))
+                                             :student student-display-name),
+                        :user-full-name    (case user-role
+                                             :teacher teacher-full-name
+                                             :student student-full-name)}))))
     (catch Exception exn
       (mulog/log ::failed-user-week-timetable
                  :args params
