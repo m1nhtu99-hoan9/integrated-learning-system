@@ -10,10 +10,10 @@ SELECT class.id           AS class_id
      , course.status      AS course_status
 FROM class
          INNER JOIN course ON course.id = class.course_id
-         INNER JOIN teacher_class tc ON class.id = tc.class_id
-         INNER JOIN teacher t ON tc.teacher_id = t.id
-         INNER JOIN account_user au ON t.account_id = au.account_id
-         INNER JOIN account a ON au.account_id = a.id
+         LEFT JOIN teacher_class tc ON class.id = tc.class_id
+         LEFT JOIN teacher t ON tc.teacher_id = t.id
+         LEFT JOIN account_user au ON t.account_id = au.account_id
+         LEFT JOIN account a ON au.account_id = a.id
 ;
 
 -- :name class-by-id :? :1

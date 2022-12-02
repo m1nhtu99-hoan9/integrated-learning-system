@@ -4,7 +4,6 @@
     [java-time.api :as jt]
     [integrated-learning-system.utils.datetime :as dt]
     [integrated-learning-system.utils.json :refer [->json-string]]
-    [integrated-learning-system.utils.string :refer [utf8-string]]
     [integrated-learning-system.views.commons :as commons]
     [integrated-learning-system.views.layouts :as layouts]
     [integrated-learning-system.views.templates.classes.commons :refer [common-vendor-js-scripts
@@ -38,12 +37,13 @@
            [:th [:span "(Course Code) Course Name"]]
            [:th [:span "Course Description"]]]
           (for [class classes,
-                :let [{:keys [class-name course-code course-name course-description],
+                :let [{:keys                                [class-name course-code course-name course-description],
                        {teacher-display-name :display-name} :teacher} class]]
             [:tr
              [:td [:span
                    [:a {:href (str "./" class-name "/")} class-name]]]
-             [:td teacher-display-name]
+             [:td (or teacher-display-name
+                      [:em (h "<Not Assigned>")])]  ; `hiccup.core/h` escapes string
              [:td (str "(" course-code ") " course-name)]
              [:td course-description]])]]]])))
 
@@ -186,13 +186,18 @@
       (include-css
         (vendor-stylesheets "vanillajs-datepicker")
         (vendor-stylesheets "bulma-checkbox"))
-      (include-js
-        (vendor-js-scripts "vanillajs-datepicker"))
-      (apply include-js common-vendor-js-scripts)
+      (-> ["vanillajs-datepicker"
+           "xstate"
+           "xstate-react-fsm"]
+          (select-keys vendor-js-scripts)
+          (apply include-js))
+      (apply include-js
+             common-vendor-js-scripts)
       (include-css "/static/stylesheets/classes.css")
       (include-js
         "/static/scripts/layouts.js"
-        "/static/scripts/classes/organise_weekly_schedule.js"))
+        "/static/scripts/classes/organise_weekly_schedule.js"
+        "/static/scripts/classes/fsm/organise_weekly_schedule.js"))
     (commons/body
       {:navbar-props nil}
       (cond
@@ -227,7 +232,7 @@
 
 ;endregion
 
-(defn manage-class-members-page [{:as opts, :keys [class-name path-errors]}]
+(defn manage-class-members-page [{:keys [class-name path-errors]}]
   (html5
     {:lang "en"}
     (commons/head

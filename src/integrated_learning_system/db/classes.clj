@@ -36,11 +36,12 @@
 
 
 (defn all-classes [db-conn]
-  (for [{:as result, :keys [teacher-first-name teacher-last-name teacher-username]} (-all-classes db-conn)]
-    (-> result
-        (assoc :teacher {:first-name teacher-first-name
-                         :last-name teacher-last-name
-                         :username teacher-username})
+  (for [{:as class-result, :keys [teacher-first-name teacher-last-name teacher-username]} (-all-classes db-conn)]
+    (-> class-result
+        (assoc :teacher (when (some? teacher-username)     ; class might not have teacher assigned yet
+                          {:first-name teacher-first-name
+                           :last-name teacher-last-name
+                           :username teacher-username}))
         (dissoc :teacher-first-name :teacher-last-name :teacher-username))))
 
 

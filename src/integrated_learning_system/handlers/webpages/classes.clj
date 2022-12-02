@@ -33,7 +33,7 @@
   (cond
     (some? coercion-problems) [400 {:path-errors (spec-explanation->validation-result s-classes/validation-messages
                                                                                       coercion-problems)}],
-    (nil? db-conn) [302 "/api/ping",]
+    (nil? db-conn) [302 "/api/ping"],
     :else
     (let [school-date (dt/->local-date date),
           path-params {:class-name      class-name
@@ -55,10 +55,12 @@
 (defn serve-all-classes-page [{{:keys [db-conn]} :services}]
   (if (nil? db-conn)
     (api/resp-302 "/api/ping")
+    ; else: happy case
     (as-> (classes-db/all-classes db-conn) $
           (for [entry $]
-            (update entry :teacher #(merge %
-                                           (user-display-names %))))
+            (update entry :teacher #(some-> % (as-> teacher
+                                                    (merge teacher
+                                                           (user-display-names teacher))))))
           (hash-map :classes $)
           (classes-tmpl/all-classes-page $)
           (resp-200 $))))
@@ -194,8 +196,10 @@
                 class-periods-num (classes-db/count-class-periods db-conn
                                                                   {:class-id class-id})]
             (if (pos-int? class-periods-num)
+              ; updating class schedule is not yet supported
               (resp-501 (classes-tmpl/organise-schedule-page {:class-name        class-name
                                                               :class-periods-num class-periods-num}))
+              ; else: happy case
               (resp-200
                 (classes-tmpl/organise-schedule-page
                   {:class-name class-name
