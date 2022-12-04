@@ -4,11 +4,12 @@
     [java-time.api :as jt]
     [integrated-learning-system.utils.datetime :as dt]
     [integrated-learning-system.utils.json :refer [->json-string]]
-    [integrated-learning-system.views.commons :as commons]
-    [integrated-learning-system.views.layouts :as layouts]
-    [integrated-learning-system.views.templates.classes.commons :refer [common-vendor-js-scripts
-                                                                        vendor-js-scripts
-                                                                        vendor-stylesheets]])
+    [integrated-learning-system.views.commons
+     :as commons
+     :refer [common-vendor-js-scripts
+             vendor-js-scripts
+             vendor-stylesheets]]
+    [integrated-learning-system.views.layouts :as layouts])
   (:use [hiccup.core])
   (:import [java.time LocalTime DayOfWeek]))
 
@@ -43,7 +44,7 @@
              [:td [:span
                    [:a {:href (str "./" class-name "/")} class-name]]]
              [:td (or teacher-display-name
-                      [:em (h "<Not Assigned>")])]  ; `hiccup.core/h` escapes string
+                      [:em (h "<Not Assigned>")])]          ; `hiccup.core/h` escapes string
              [:td (str "(" course-code ") " course-name)]
              [:td course-description]])]]]])))
 
@@ -186,18 +187,23 @@
       (include-css
         (vendor-stylesheets "vanillajs-datepicker")
         (vendor-stylesheets "bulma-checkbox"))
-      (-> ["vanillajs-datepicker"
-           "xstate"
-           "xstate-react-fsm"]
-          (select-keys vendor-js-scripts)
-          (apply include-js))
-      (apply include-js
-             common-vendor-js-scripts)
+      (->> ["preact"
+            "preact/hooks"
+            "xstate"
+            "dayjs"
+            "dayjs/plugin/isoWeek"
+            "dayjs/plugin/isSameOrAfter"
+            "bulma-toast"
+            "vanillajs-datepicker"]
+           ; select values from `vendor-js-scripts` with the deps as keys
+           (map vendor-js-scripts)
+           (concat common-vendor-js-scripts)
+           (apply include-js))
       (include-css "/static/stylesheets/classes.css")
       (include-js
         "/static/scripts/layouts.js"
-        "/static/scripts/classes/organise_weekly_schedule.js"
-        "/static/scripts/classes/fsm/organise_weekly_schedule.js"))
+        "/static/scripts/classes/fsm/organise_weekly_schedule_fsm.js"
+        "/static/scripts/classes/organise_weekly_schedule.js"))
     (commons/body
       {:navbar-props nil}
       (cond
@@ -245,7 +251,11 @@
          (->json-string {:imports {"preact" "https://cdn.jsdelivr.net/npm/preact@10.11.3"}})])
       (include-css
         "https://cdn.jsdelivr.net/npm/@creativebulma/bulma-tagsinput@1.0.3/dist/css/bulma-tagsinput.min.css")
-      (apply include-js common-vendor-js-scripts)
+      (->> ["preact"
+            "preact/hooks"]
+           (map vendor-js-scripts)
+           (concat common-vendor-js-scripts)
+           (apply include-js))
       (include-css "/static/stylesheets/classes.css")
       (include-js
         "/static/scripts/layouts.js"

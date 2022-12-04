@@ -23,22 +23,29 @@
      ["/{date}/{slot-no}"
       {:conflicting true}
       ["/homework"
-       {:post {:name ::homework-add-request
+       {:post {:name    ::homework-add-request
                :summary "Create homework"
                :handler hh/create-homework}}]]
      ["/batch"
       {:conflicting true
-       :post {:name    ::class-periods-add-request
-              :summary "Organise schedule for class"
-              :handler hp/organise-class-periods}}]
+       :post        {:name    ::class-periods-add-request
+                     :summary "Organise schedule for class"
+                     :handler hp/organise-class-periods}}]
      ["/" {:get {:name    ::class-periods-get-request
                  :summary "Query class periods"
                  :handler hp/get-class-periods}}]]
 
     ["/members"
-     {:get {:name    ::class-members-get-request
-            :summary "Query class teacher and all student(s)"
-            :handler hm/get-class-members},
-      :put {:name    ::class-members-put-request
-            :summary "Manage class teacher and students"
-            :handler hm/replace-class-members}}]]])
+     ["/timetable"
+      {:get {:name       ::class-members-timetable-get-request
+             :summary    "Query class members and their timetable"
+             :parameters {:query {:from-date ::s-classes/from-date
+                                  :to-date   ::s-classes/to-date}}
+             :handler    hm/get-class-member-timetables}}]
+     ["/"
+      {:get {:name    ::class-members-get-request
+             :summary "Query class teacher and all student(s)"
+             :handler hm/get-class-members},
+       :put {:name    ::class-members-put-request
+             :summary "Manage class teacher and students"
+             :handler hm/replace-class-members}}]]]])

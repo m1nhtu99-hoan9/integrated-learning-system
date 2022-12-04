@@ -1,11 +1,12 @@
 (ns integrated-learning-system.views.templates.classes.class-periods
   (:require
     [hiccup.page :refer [html5 include-css include-js]]
-    [integrated-learning-system.views.commons :as commons]
+    [integrated-learning-system.views.commons
+     :as commons
+     :refer [common-vendor-js-scripts
+             vendor-js-scripts
+             vendor-stylesheets]]
     [integrated-learning-system.views.layouts :as layouts]
-    [integrated-learning-system.views.templates.classes.commons :refer [common-vendor-js-scripts
-                                                                        vendor-js-scripts
-                                                                        vendor-stylesheets]]
     [java-time.api :as jt])
   (:use [hiccup.core]))
 
@@ -101,11 +102,16 @@
     {:lang "en"}
     (commons/head
       {:title "Add homework"}
-      (include-css
-        (vendor-stylesheets "bulma-radio")
-        (vendor-stylesheets "bulma-helpers"))
-      (apply include-js common-vendor-js-scripts)
-      (include-js (vendor-js-scripts "slugify"))
+      (->> ["bulma-radio"
+            "bulma-helpers"]
+           (map vendor-stylesheets)
+           (apply include-css))
+      (->> ["preact"
+            "preact/hooks"
+            "slugify"]
+           (map vendor-js-scripts)
+           (concat common-vendor-js-scripts)
+           (apply include-js))
       (include-css "/static/stylesheets/homework.css")
       (include-js
         "/static/scripts/layouts.js"

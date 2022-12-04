@@ -2,6 +2,11 @@ main {
   margin-bottom: 1rem;
 }
 
+.content table.is-loading {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
 .content table td {
   /* overrides bulma defaults */
   text-align: center;

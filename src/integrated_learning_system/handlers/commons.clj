@@ -25,7 +25,9 @@
   (api/resp-302 "/404"))
 
 
-(defn user-display-names [{:keys [first-name last-name username]}]
-  (let [full-name (str first-name " " last-name),
-        display-name (str full-name " (" username ")")]
-    {:full-name full-name, :display-name display-name}))
+(defn user-display-names [{:as user, :keys [first-name last-name username]}]
+  (if (nil? user)
+    user
+    (let [full-name (str first-name " " last-name),
+          display-name (str full-name " (" username ")")]
+      {:full-name full-name, :display-name display-name})))

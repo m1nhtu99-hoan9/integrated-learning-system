@@ -11,7 +11,8 @@
     [integrated-learning-system.specs :refer [spec-explanation->validation-result]]
     [integrated-learning-system.specs.requests.classes :as s-classes]
     [integrated-learning-system.utils.throwable :refer [exn->map]]
-    [next.jdbc :as jdbc]))
+    [next.jdbc :as jdbc]
+    [integrated-learning-system.utils.datetime :as dt]))
 
 
 ;;region GET handlers
@@ -26,8 +27,8 @@
                                               (spec-explanation->validation-result s-classes/validation-messages
                                                                                    coercion-problems)),
       (nil? db-conn) (api/resp-302 "/api/ping"),
-      :else (let [db-query-params {:class-name class-name}
-                  students (classes-db/class-students-by-class-name db-conn db-query-params)
+      :else (let [db-query-params {:class-name class-name},
+                  students (classes-db/class-students-by-class-name db-conn db-query-params),
                   teacher (classes-db/class-teacher-by-class-name db-conn db-query-params)]
               (api/resp-200 {:class-teacher  (merge (dissoc teacher :teacher-id)
                                                     (user-display-names teacher))
@@ -41,6 +42,48 @@
       (api/resp-500 (str "Failed to process this request getting class member(s) of '" class-name "'.")
                     nil))))
 
+
+(defn get-class-member-timetables [{:as                                 req
+                                    :keys                               [coercion-problems]
+                                    {:keys [db-conn]}                   :services
+                                    {{:keys [class-name]}        :path
+                                     {:keys [from-date to-date]} :query} :parameters}]
+  (try
+    (cond
+      (some? coercion-problems) (api/resp-401 "Invalid request"
+                                              (spec-explanation->validation-result s-classes/validation-messages
+                                                                                   coercion-problems)),
+      (nil? db-conn) (api/resp-302 "/api/ping"),
+      :else (let [from-date (dt/->local-date from-date),
+                  to-date (dt/->local-date to-date),
+                  {:as teacher, :keys [teacher-id]} (classes-db/class-teacher-by-class-name db-conn {:class-name class-name}),
+                  teacher (merge (dissoc teacher :teacher-id)
+                                 (user-display-names teacher)),
+                  teacher-timetable (when-not (nil? teacher-id)
+                                      (teachers-db/teacher-timetable-by-teacher-id db-conn {:teacher-id teacher-id
+                                                                                            :from-date  from-date
+                                                                                            :to-date    to-date})),
+                  students (classes-db/class-students-by-class-name db-conn {:class-name class-name}),
+                  student-with-timetables (for [{:as student, :keys [student-id]} students
+                                                :let [timetable (students-db/student-timetable-by-student-id
+                                                                  db-conn
+                                                                  {:student-id student-id
+                                                                   :from-date  from-date
+                                                                   :to-date    to-date}),
+                                                      student (merge (dissoc student :student-id)
+                                                                     (user-display-names student))]]
+                                            (assoc student :timetable timetable))]
+              (api/resp-200 {:class-teacher  (assoc teacher :timetable teacher-timetable)
+                             :class-students student-with-timetables})))
+
+    (catch Exception exn
+      (mulog/log ::failed-get-class-member-timetables
+                 :exn (exn->map exn (fn [stack] (->> stack (take 12) (into []))))
+                 :req-arg (select-keys req [:body-params :path-params]))
+      (api/resp-500 (str "Failed to process this request getting class member(s) of '" class-name "'.")
+                    nil))))
+
+
 ;;endregion
 
 ;;region PUT handlers
@@ -51,7 +94,9 @@
         teacher (teachers-db/teacher-by-username db-conn {:username teacher-username})
         req-student-usernames (mapv :username req-students),
         ; TODO: validate against non-string values among req-student-usernames
-        students (students-db/students-by-usernames db-conn {:usernames req-student-usernames}),
+        students (if (empty? req-student-usernames)
+                   []
+                   (students-db/students-by-usernames db-conn {:usernames req-student-usernames})),
         student-username-groups (group-by :username students),
         teacher-errors (when (nil? teacher)
                          {teacher-username (str "No teachers with username '" teacher-username "' existed in the system.")}),
@@ -110,9 +155,11 @@
                      added-teacher-username :username} (teacher-classes-db/safe-insert-teacher-class!
                                                          db-tx {:class-id   class-id
                                                                 :teacher-id future-teacher-id}),
-                    added-class-students (student-classes-db/insert-students-to-class!
-                                           db-tx {:class-id    class-id
-                                                  :student-ids future-student-ids}),
+                    added-class-students (if (empty? future-student-ids)
+                                           []
+                                           (student-classes-db/insert-students-to-class!
+                                             db-tx {:class-id    class-id
+                                                    :student-ids future-student-ids})),
                     added-student-id-usernames (->student-id-username-map added-class-students),
                     added-student-ids (->> added-student-id-usernames keys vec),
                     all-student-ids (into #{} (concat removed-student-ids added-student-ids))] ; transform to set to filter out duplicate

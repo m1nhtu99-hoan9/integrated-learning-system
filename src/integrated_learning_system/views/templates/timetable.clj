@@ -69,10 +69,11 @@
              [:th [:abbr {:title "Timeslot Number"}
                    "Slot No."]]
              date-headers]]
-           [:tfoot
-            [:tr
-             [:th]  ; intentionally left empty
-             date-headers]]))
+           (when-not (empty? timeslots)
+             [:tfoot
+              [:tr
+               [:th]  ; intentionally left empty
+               date-headers]])))
        (-timetable-rows {:timeslots timeslots, :dates dates, :timetable timetable})])))
 
 ;endregion

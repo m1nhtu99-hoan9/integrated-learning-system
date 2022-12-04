@@ -4,8 +4,7 @@ console.debug(`BulmaTagsInput ctor imported: ${!!window.BulmaTagsInput}`);
 console.debug(`'ramda' imported: ${!!window.R}`);
 console.debug(`'layouts' loaded: ${!!window.layouts}`);
 console.debug(`'preact' loaded: ${!!window.preact}`);
-console.debug(`'preactHooks' loaded: ${!!window.preactHooks}`);
-console.debug(`htm imported: ${!!window.htm}`);
+console.debug(`'htm' imported: ${!!window.htm}`);
 
 const elems = {
   heroBannerSection: undefined,
@@ -390,7 +389,7 @@ async function asyncQueryTeachers() {
 }
 
 async function asyncQueryExistingMembers(className) {
-  const uri = `/api/v1/classes/${className}/members`;
+  const uri = `/api/v1/classes/${className}/members/`;
   const resp = await fetch(uri);
   const respBody = await (resp.headers
     .get("content-type")
@@ -415,7 +414,7 @@ async function asyncQueryExistingMembers(className) {
 }
 
 async function asyncPutClassMemberRequest(className, requestBody) {
-  const resp = await fetch(`/api/v1/classes/${className}/members`, {
+  const resp = await fetch(`/api/v1/classes/${className}/members/`, {
     method: "PUT",
     headers: {
       Accept: "application/json",

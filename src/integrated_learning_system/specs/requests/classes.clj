@@ -12,8 +12,10 @@
          {::class-name-nonempty (vms/prop-string-nonempty "className")
           ::class-name-chars    "className can only contain alphabetic, numeric, '_', '.' or '-' characters."
           ::class-name-length   (vms/prop-string-length-between "className" 3 15)
-          ::date "Not a valid date parameter"
-          ::slot-no "slot-no is expected to be an integer"}))
+          ::date                "Not a valid date parameter"
+          ::slot-no             "slot-no is expected to be an integer"
+          ::from-date           "Not a valid date"
+          ::to-date             "Not a valid date"}))
 
 
 (s/def ::course-code ::s-courses/course-code)
@@ -25,6 +27,9 @@
 
 (s/def ::date inst?)
 (s/def ::slot-no int?)
+
+(s/def ::from-date inst?)
+(s/def ::to-date inst?)
 
 ;-- ::class-add-request
 

@@ -73,7 +73,7 @@
   (let [[code result] (-preprocess-class-page coercion-problems db-conn path-params)]
     (case code
       400 (resp-400 (classes-tmpl/class-page result)),
-      301 (api/resp-302 result),
+      302 (api/resp-302 result),
       200 (-> {:class-name class-name
                :uris       {:timetable "./timetable"
                             :actions   {:manage-class-members     "./_actions/manage-class-members"
@@ -91,7 +91,7 @@
       400 (-> {:param-errors (result :path-errors)}
               timetable-tmpl/timetable-page
               resp-400),
-      301 (api/resp-302 result),
+      302 (api/resp-302 result),
       200 (let [{:keys [course-code course-name]} result,   ; `result` is this class
                 week-and-year-fn (fn [date]
                                    (jt/as date :aligned-week-of-year :week-based-year)),
@@ -119,7 +119,8 @@
                                                                       :from-date  week-first-date
                                                                       :to-date    week-last-date}),
                 timetable-entries (for [entry timetable-entries]
-                                    (assoc entry :course-code course-code
+                                    (assoc entry :class-name class-name
+                                                 :course-code course-code
                                                  :course-name course-name)),
                 timetable-entries (group-by :school-date
                                             timetable-entries),
@@ -191,7 +192,7 @@
   (let [[code result] (-preprocess-class-page coercion-problems db-conn path-params)]
     (case code
       400 (resp-400 (classes-tmpl/organise-schedule-page result)),
-      301 (api/resp-302 result),
+      302 (api/resp-302 result),
       200 (let [{:keys [class-id]} result,
                 class-periods-num (classes-db/count-class-periods db-conn
                                                                   {:class-id class-id})]
@@ -213,7 +214,7 @@
   (let [[code result] (-preprocess-class-page coercion-problems db-conn path-params)]
     (case code
       400 (resp-400 (classes-tmpl/manage-class-members-page result)),
-      301 (api/resp-302 result),
+      302 (api/resp-302 result),
       200 (resp-200 (classes-tmpl/manage-class-members-page {:class-name class-name})))))
 
 
