@@ -130,6 +130,10 @@ function defineInternalSymbols({ html }, { className }) {
       console.assert(!!teacherTagsController.current);
     }, []);
 
+    useEffect(() => {
+      console.debug(`is processing: ${isSubmitProcessing}`);
+    }, [isSubmitProcessing]);
+
     function handleSubmit(e) {
       e.preventDefault();
       setSubmitProcessing(true);
@@ -140,6 +144,7 @@ function defineInternalSymbols({ html }, { className }) {
 
       if (!selectedTeacher) {
         onValidationErrors({ teacher: ["ONE teacher must be assigned."] });
+        setSubmitProcessing(false);
         return;
       }
 
