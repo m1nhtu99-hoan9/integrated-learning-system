@@ -1,5 +1,10 @@
 # Integrated Learning System
 
+Source code submission for my uni final project.
+
+See:
+- Manual test cases: [*Integrated Learning System V1 manual test.pdf*](./Integrated Learning System V1 manual test.pdf)
+
 ## Project Structure
 
 - `src`: Main source code
