@@ -75,7 +75,9 @@
                   :exn exn)
        nil)))
   ([defined-messages spec-explanation]
-   (spec-explanation->validation-result defined-messages spec-explanation (::s/value spec-explanation))))
+   (spec-explanation->validation-result defined-messages
+                                        spec-explanation
+                                        (::s/value spec-explanation))))
 
 
 (defn spec-validate

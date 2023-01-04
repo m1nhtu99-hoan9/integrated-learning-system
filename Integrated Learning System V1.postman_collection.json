@@ -1,0 +1,454 @@
+{
+	"info": {
+		"_postman_id": "abaf8c19-bf28-4ca4-b28e-779bdf5dcc96",
+		"name": "Integrated Learning System V1",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/api/v1",
+			"item": [
+				{
+					"name": "/accounts",
+					"item": [
+						{
+							"name": "{role: \"teacher\"}",
+							"item": [
+								{
+									"name": "POST invalid #1",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"role\": \"teacher\",\r\n    \"username\": \"     \",\r\n    \"password\": \"\",\r\n    \"firstName\": \"\",\r\n    \"lastName\": \"\",\r\n    \"dateOfBirth\": \"01/01/1980\",\r\n    \"personalEmail\": \"\",\r\n    \"phoneNumber\": \"\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": "{{baseUrl}}/api/v1/accounts/"
+									},
+									"response": []
+								},
+								{
+									"name": "POST invalid #2: ill-formatted dateOfBirth",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"role\": \"teacher\",\r\n    \"username\": \"t*a😋cer\",\r\n    \"password\": \"todo-hashed-password\",\r\n    \"firstName\": \"selct * from teacher where account_id = 00000000-0000-0000-0000-000000000000\",\r\n    \"lastName\": \"\",\r\n    \"dateOfBirth\": \"01/1980\",\r\n    \"personalEmail\": \"john_doe@teacher@domain.com\",\r\n    \"phoneNumber\": \"(081)9041234568\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": "{{baseUrl}}/api/v1/accounts/"
+									},
+									"response": []
+								},
+								{
+									"name": "POST invalid #3: validation errors expected",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"role\": \"teacher\",\r\n    \"username\": \"t*a😋cer\",\r\n    \"password\": \"todo-hashed-password\",\r\n    \"firstName\": \"selct * from teacher where account_id = 00000000-0000-0000-0000-000000000000\",\r\n    \"lastName\": \"\",\r\n    \"dateOfBirth\": \"02/01/1980\",\r\n    \"personalEmail\": \"john_doe@teacher@domain.com\",\r\n    \"phoneNumber\": \"(081)9041234568\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": "{{baseUrl}}/api/v1/accounts/"
+									},
+									"response": []
+								},
+								{
+									"name": "POST valid",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"role\": \"teacher\",\r\n    \"username\": \"john_doe.teacher\",\r\n    \"password\": \"todo-hashed-password\",\r\n    \"firstName\": \"John the Teacher\",\r\n    \"lastName\": \"Nguyễn\",\r\n    \"dateOfBirth\": \"01/01/1980\",\r\n    \"personalEmail\": \"john_doe.teacher@domain.com\",\r\n    \"phoneNumber\": \"+849041234568\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": "{{baseUrl}}/api/v1/accounts/"
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "{role: \"student\"}",
+							"item": [
+								{
+									"name": "POST valid",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\r\n    \"role\": \"student\",\r\n    \"username\": \"student\",\r\n    \"password\": \"hashed-password\",\r\n    \"firstName\": \"Tommy the Student\",\r\n    \"lastName\": \"Hoàng\",\r\n    \"dateOfBirth\": \"21/12/1996\",\r\n    \"personalEmail\": \"tommy_learner_for_life@domain.com\",\r\n    \"phoneNumber\": \"+84904123457\"\r\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": "{{baseUrl}}/api/v1/accounts/"
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "POST invalid role",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"role\": \"moderator\",\r\n    \"username\": \"moderator\",\r\n    \"password\": \"todo-hashed-password\",\r\n    \"firstName\": \"John the moderator\",\r\n    \"lastName\": \"Doe\",\r\n    \"dateOfBirth\": \"01/01/1980\",\r\n    \"personalEmail\": \"john_doe.moderator@domain.com\",\r\n    \"phoneNumber\": \"+849041234568\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{baseUrl}}/api/v1/accounts/"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "/timeslots",
+					"item": [
+						{
+							"name": "POST invalid",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"durationMins\": 48.5,\r\n    \"startAt\": \"7:00\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{baseUrl}}/api/v1/timeslots/"
+							},
+							"response": []
+						},
+						{
+							"name": "POST valid",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"startAt\": \"07:00\",\r\n    \"durationMins\": 45\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{baseUrl}}/api/v1/timeslots/"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "/courses",
+					"item": [
+						{
+							"name": "❗ POST invalid request value type",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"courseCode\": 101,\r\n    \"courseName\": \"Learning 101\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{baseUrl}}/api/v1/courses/"
+							},
+							"response": []
+						},
+						{
+							"name": "POST valid",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"courseCode\": \"LEARNING101\",\r\n    \"courseName\": \"Learning 101\"\r\n}\r\n\r\n/*\r\nExpectations:\r\n\r\n- First-time sending: response code 201\r\n\r\n```json\r\n{\r\n    \"courseCode\": \"LEARNING101\",\r\n    \"courseName\": \"Learning 101\",\r\n    \"description\": null,\r\n    \"status\": \"ACTIVE\",\r\n    \"uri\": \"/courses/LEARNING101\"\r\n}\r\n```\r\n\r\n- The following sendings:\r\n\r\n```json\r\n{\r\n    \"title\": \"Data conflicts.\",\r\n    \"errors\": {\r\n        \"username\": \"Course with code [LEARNING101] already exists.\"\r\n    }\r\n}\r\n```\r\n*/",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{baseUrl}}/api/v1/courses/"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "/classes",
+					"item": [
+						{
+							"name": "/members",
+							"item": [
+								{
+									"name": "/timetable",
+									"item": [
+										{
+											"name": "GET invalid: No request queries",
+											"request": {
+												"method": "GET",
+												"header": [],
+												"url": "{{baseUrl}}/api/v1/classes/CLASS01/members/timetable"
+											},
+											"response": []
+										},
+										{
+											"name": "GET invalid: Unsupported date format",
+											"request": {
+												"method": "GET",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/classes/CLASS01/members/timetable?from-date=01/11/2022&to-date=01/12/2022",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"classes",
+														"CLASS01",
+														"members",
+														"timetable"
+													],
+													"query": [
+														{
+															"key": "from-date",
+															"value": "01/11/2022"
+														},
+														{
+															"key": "to-date",
+															"value": "01/12/2022"
+														}
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "GET valid",
+											"request": {
+												"method": "GET",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/api/v1/classes/CLASS01/members/timetable?from-date=2022-11-01&to-date=2022-12-22",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"api",
+														"v1",
+														"classes",
+														"CLASS01",
+														"members",
+														"timetable"
+													],
+													"query": [
+														{
+															"key": "from-date",
+															"value": "2022-11-01"
+														},
+														{
+															"key": "to-date",
+															"value": "2022-12-22"
+														}
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "GET all",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": "{{baseUrl}}/api/v1/classes/CLASS01/members/"
+									},
+									"response": []
+								},
+								{
+									"name": "GET all - invalid",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": "{{baseUrl}}/api/v1/classes/CL^!/members/"
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "/periods",
+							"item": [
+								{
+									"name": "GET all",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": "{{baseUrl}}/api/v1/classes/CLASS01/periods/"
+									},
+									"response": []
+								},
+								{
+									"name": "GET all - invalid",
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": "{{baseUrl}}/api/v1/classes/CLASS01/periods/"
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "POST valid",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"courseCode\": \"LEARNING101\",\r\n    \"className\": \"CLASS01\"\r\n}\r\n\r\n/*\r\n## Prerequisite:\r\n\r\n- `/courses` `POST valid` request sent, and responded with HTTP code 201.\r\nIf not, the following response coded 422 is expected:\r\n\r\n```json\r\n{\r\n    \"title\": \"Data conflicts.\",\r\n    \"errors\": {\r\n        \"courseCode\": [\r\n            \"No courses of code 'LEARNING101' found.\"\r\n        ]\r\n    }\r\n}\r\n```\r\n\r\n## Expected response:\r\n\r\n- First time sending: Code 201\r\n\r\n```json\r\n{\r\n    \"className\": \"CLASS01\",\r\n    \"courseName\": \"Learning 101\",\r\n    \"courseCode\": \"LEARNING101\",\r\n    \"courseDescription\": null,\r\n    \"courseStatus\": \"ACTIVE\",\r\n    \"uri\": \"/courses/CLASS01\"\r\n}\r\n```\r\n\r\n- Other later sendings: Code 422\r\n\r\n```json\r\n{\r\n    \"title\": \"Data conflicts.\",\r\n    \"errors\": {\r\n        \"className\": [\r\n            \"Class name 'CLASS01' is already used.\"\r\n        ]\r\n    }\r\n}\r\n```\r\n\r\n*/\r\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{baseUrl}}/api/v1/classes/"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "/students",
+					"item": [
+						{
+							"name": "GET all",
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {}
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "{{baseUrl}}/api/v1/students/"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "/teachers",
+					"item": [
+						{
+							"name": "GET all",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "{{baseUrl}}/api/v1/teachers/"
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "/swagger/v1/index.json",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{baseUrl}}/swagger/v1/index.json"
+			},
+			"response": []
+		},
+		{
+			"name": "/api/ping",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"testNo\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{baseUrl}}/api/ping"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3001",
+			"type": "default"
+		}
+	]
+}

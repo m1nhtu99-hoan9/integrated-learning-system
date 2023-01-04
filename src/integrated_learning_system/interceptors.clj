@@ -7,6 +7,9 @@
 ;region db-conn
 
 (defn -fn-register-db-conn [ctx postgres-cfgmap]
+  ;; ctx: global context managed by pedestal
+  ;; postgres-cfgmap: database configuration read from the config file,
+  ;;                  either a hash-map understood by next.jdbc or a javax.sql.DataSource object
   (if-some [db-conn (init-db-conn postgres-cfgmap)]
     ; non-null -> includes the initiated `db-conn` to the service collection
     (update-in ctx [:request :services]
